@@ -8,7 +8,13 @@ import (
 	"net/http"
 )
 
-const port string = ":4000"
+const (
+	port        string = ":4000"
+	templateDir string = "templates/"
+)
+
+//template package 에 Template object pointer
+var templates *template.Template
 
 //struct 내부값을 공유하기 위해 대문자로 쓴다
 type homeData struct {
@@ -35,8 +41,6 @@ func home(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}*/
-	//go package 중에서 template 들을 load 해오자
-	tmpl := template.Must(template.ParseFiles("templates/home.gohtml"))
 
 	data := homeData{
 		PageTitle: "HOME",
@@ -45,9 +49,22 @@ func home(writer http.ResponseWriter, request *http.Request) {
 	}
 	//template으로 data 를 보냄
 	//template 내부에서는 pageTitle 이라고 하는 field 를 기다리고 있음
-	tmpl.Execute(writer, data)
+	//tmpl.Execute(writer, data)
+	//"home"이름의 template에 data 를 넘겨줌
+	templates.ExecuteTemplate(writer, "home", data)
 }
 func main() {
+	//templates 를 초기화
+	//이름을 넘기지 않고 pattern 사용
+	//template.ParseGlob(templateDir + "pages/*.gohtml")
+	//pages 폴더 안에서 .gohtml 로 끝나는 모든 파일을 가져온다 (load)
+	//첫번째 줄에서는 template 변수 사용
+	//standard library 에 있는 template 이다 (*template.Template)
+	templates = template.Must(template.ParseGlob(templateDir + "pages/*.gohtml"))
+	//templates 패키지에 Template Object pointer
+	//에서 update 시킴
+	templates = template.Must(templates.ParseGlob(templateDir + "partials/*.gohtml"))
+
 	http.HandleFunc("/", home)
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	//서버 만들기 http://golang.site/go/article/111-%EA%B0%84%EB%8B%A8%ED%95%9C-%EC%9B%B9-%EC%84%9C%EB%B2%84-HTTP-%EC%84%9C%EB%B2%84

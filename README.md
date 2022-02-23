@@ -48,3 +48,20 @@ func main()  {
 
 ```
 multiple return 
+
+
+
+# 'text/template' HTML templage 가 구현하는 package
+https://pkg.go.dev/text/template
+
+main에서 
+pages,partials 폴더에 만든 template을
+일일이 load 하지 않고
+home 에 대한 요청이 있을 때 마다
+home function 이 호출 될 때마다
+home template 을 parsing 하고
+main 에 load
+
+main 코드에  variable 을 추가했는데
+해당 variable은 전체 template을 관리한다
+
