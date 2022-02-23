@@ -6,13 +6,13 @@ import (
 	"sync"
 )
 
-type block struct {
+type Block struct {
 	Data    string
 	Hash    string
 	PreHash string
 }
 type blockchain struct {
-	blocks []*block // pointer 들의 slice
+	blocks []*Block // pointer 들의 slice
 }
 
 //blockchain 을 공유하고 초기화하는 부분을 구현
@@ -50,8 +50,8 @@ func (b *blockchain) AddBlock(data string) {
 	b.blocks = append(b.blocks, createBlock(data))
 }
 
-func createBlock(data string) *block {
-	newBlock := block{
+func createBlock(data string) *Block {
+	newBlock := Block{
 		Data:    data,
 		Hash:    "",
 		PreHash: getLastHash(),
@@ -66,12 +66,12 @@ func getLastHash() string {
 	}
 	return GetBlockchain().blocks[totalBlocks-1].Hash
 }
-func (b *block) calculateHash() {
+func (b *Block) calculateHash() {
 	hash := sha256.Sum256([]byte(b.Data + b.PreHash))
 	//hash 를 "%x"를 통해 16진수로 변경
 	b.Hash = fmt.Sprintf("%x", hash)
 }
-func (b *blockchain) AllBlocks() []*block {
+func (b *blockchain) AllBlocks() []*Block {
 	return b.blocks
 }
 
