@@ -1,0 +1,18 @@
+
+{{define "add"}}
+    <!DOCTYPE html>
+    <html lang="en">
+    {{template "head" "Add"}}
+    <body>
+    {{template "header" "Add"}}
+    <main>
+        <form method="POST" >
+            <!--input 에 name 을 써줘야 backend 에서 이 input 에 접근 가능 -->
+            <input type="text" placeholder="Data for your block" required name="blockData"/>
+            <button>Add Block</button>
+        </form>
+    </main>
+    {{template "footer"}}
+    </body>
+    </html>
+{{end}}
