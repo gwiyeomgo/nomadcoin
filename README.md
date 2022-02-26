@@ -65,3 +65,24 @@ main 에 load
 main 코드에  variable 을 추가했는데
 해당 variable은 전체 template을 관리한다
 
+# interface
+
+목표: 특정 string 을 모든 url 앞에 더해준다
+https://go.dev/tour/methods/17
+interface 는 함수의 청사진과 같다
+Stringer 라는 interface 는 String 이라는
+하나의 method 만 구현시킨다
+대문자로 시작하며 ,매개변수 x, string 을 return
+
+fmt package 로 출력 할때 
+어떻게 보여줄지 조절할 수 있다
+* Go 에서는 모든 interface 가 내재적으로 구현
+
+
+* Marshal,Unmarshal 할때, Field 의 결과물을 수정할 수 있는 interface 가 이다
+interface 를 json으로 변환할때
+중간에서 field 가 json에서
+어떻게 보일지 원하는 대로 변경 가능
+https://pkg.go.dev/encoding
+
+type TextMarshaler

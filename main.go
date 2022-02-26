@@ -7,6 +7,17 @@ import (
 	"net/http"
 )
 
+//7.MarshalText 는 Field가 json string으로써 어떻게 보일지 결정하는 method
+type URL string
+
+func (u URL) MarshalText() (text []byte, err error) {
+	url := fmt.Sprintf("http://localhost:%s%s", port, u)
+	return []byte(url), err
+}
+
+/*func (u URLDescription) String() string{
+	return fmt.Sprintf("http://localhost:4000%s",u.URL)
+}*/
 //6.Method 대문자는 public
 // 소문자로 쓰고 싶을때
 // field struct tag 사용
@@ -15,7 +26,7 @@ import (
 //* field is ignored by this packages
 // `json:"-"` 사용 field 를 무시
 type URLDescription struct {
-	URL         string `json:"url"`
+	URL         URL    `json:"url"`
 	Method      string `json:"method"`
 	Description string `json:"description"`
 	Payload     string `json:"payload,omitempty"`
@@ -28,12 +39,12 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 	//struct 의 slice
 	data := []URLDescription{
 		{
-			URL:         "/",
+			URL:         URL("/"),
 			Method:      "GET",
 			Description: "test",
 		},
 		{
-			URL:         "/blocks",
+			URL:         URL("/blocks"),
 			Method:      "POST",
 			Description: "Add a block",
 			Payload:     "data:string",
