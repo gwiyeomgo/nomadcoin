@@ -86,3 +86,15 @@ interface 를 json으로 변환할때
 https://pkg.go.dev/encoding
 
 type TextMarshaler
+
+/*func (u URLDescription) String() string{
+	return fmt.Sprintf("http://localhost:4000%s",u.URL)
+}*/
+//6.Method 대문자는 public
+// 소문자로 쓰고 싶을때
+// field struct tag 사용
+// field struct tag로 json 형태 key 값으로 보내짐
+//* omitempty 는 field 가 비어있으면 field 를 숨겨준다.
+//* field is ignored by this packages
+// `json:"-"` 사용 field 를 무시
+//7.MarshalText 는 Field가 json string으로써 어떻게 보일지 결정하는 method

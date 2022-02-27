@@ -3,28 +3,22 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gwiyeomgo/nomadcoin/blockchain"
 	"log"
 	"net/http"
 )
 
-//7.MarshalText 는 Field가 json string으로써 어떻게 보일지 결정하는 method
 type URL string
 
 func (u URL) MarshalText() (text []byte, err error) {
-	url := fmt.Sprintf("http://localhost:%s%s", port, u)
+	url := fmt.Sprintf("http://localhost%s%s", port, u)
 	return []byte(url), err
 }
 
-/*func (u URLDescription) String() string{
-	return fmt.Sprintf("http://localhost:4000%s",u.URL)
-}*/
-//6.Method 대문자는 public
-// 소문자로 쓰고 싶을때
-// field struct tag 사용
-// field struct tag로 json 형태 key 값으로 보내짐
-//* omitempty 는 field 가 비어있으면 field 를 숨겨준다.
-//* field is ignored by this packages
-// `json:"-"` 사용 field 를 무시
+type AddBlockBody struct {
+	Message string
+}
+
 type URLDescription struct {
 	URL         URL    `json:"url"`
 	Method      string `json:"method"`
@@ -34,6 +28,25 @@ type URLDescription struct {
 
 const port string = ":4000"
 
+func blocks(rw http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		//Encode 가 Marshal 일을 헤주고
+		//결과를 ResponseWriter 에 작성
+		rw.Header().Add("Content-Type", "application/json")
+		json.NewEncoder(rw).Encode(blockchain.GetBlockchain().AllBlocks())
+	case "POST":
+		//request 의 body를 받는다.
+		//rest client 로 insomnia ,postman 등 사용
+		//request body를 struct 로 decode 한다
+		var addBlockBody AddBlockBody
+		//read 할땐 decode
+		//& 포인터를 더해주면 addBlockBody 주소를 전달 (복사본 x)
+		json.NewDecoder(r.Body).Decode(&addBlockBody)
+		fmt.Println(addBlockBody)
+
+	}
+}
 func documentation(rw http.ResponseWriter, r *http.Request) {
 	// data 는 Go의 세계에 있는 slice
 	//struct 의 slice
@@ -77,8 +90,7 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 func main() {
 
 	http.HandleFunc("/", documentation)
-	//REST API를 통해서 transaction 만들기
-	//1.서버를 시작'
+	http.HandleFunc("/blocks", blocks)
 	fmt.Printf("Listening on http://localhost%s", port)
 	log.Fatal(http.ListenAndServe(port, nil))
 	//explorer.Start()
