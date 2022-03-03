@@ -3,6 +3,7 @@ package rest
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"github.com/gwiyeomgo/nomadcoin/blockchain"
 	"github.com/gwiyeomgo/nomadcoin/utils"
 	"log"
@@ -91,10 +92,27 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(rw).Encode(data)
 
 }
+func block(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+}
+
 func Start(aPort int) {
+	//go get -u github.com/gorilla/mux 을 통해 gorilla mux 사용
+	router := mux.NewRouter()
+	//ServeMux 는 url 과 url 함수를 연결해주는 역할
+	//handler := http.NewServeMux()
 	port = fmt.Sprintf(":%d", aPort)
-	http.HandleFunc("/", documentation)
-	http.HandleFunc("/blocks", blocks)
+	//하나의 multiplexer 가 두곳에서 사용되서 에러남
+	//port 가 달라도 상관 없음
+	//http.HandleFunc("/", documentation)
+	//이렇게 바꿈으로
+	//ListenAndServe 함수에 기본 multiplexer 가 기본이 아닌 handler 사용하도록
+	//.Methods("GET") 을 쓰면 다른 method로 부터 보호해 준다.
+	router.HandleFunc("/", documentation).Methods("GET")
+	router.HandleFunc("/blocks", blocks).Methods("GET", "PUT")
+	router.HandleFunc("/blocks/{id:[0-9]+}", block).Methods("GET")
 	fmt.Printf("Listening on http://localhost%s\n", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s\n", port), nil))
+	log.Fatal(http.ListenAndServe(port, router))
 }

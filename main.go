@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/gwiyeomgo/nomadcoin/explorer"
 	"github.com/gwiyeomgo/nomadcoin/rest"
 )
 
 func main() {
-	go rest.Start(5000)
-	explorer.Start(4000)
+	//port 2개 실행시 go 사용
+	rest.Start(3000)
+	//go explorer.Start(4000)
 }

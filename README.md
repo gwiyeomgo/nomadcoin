@@ -98,3 +98,25 @@ type TextMarshaler
 //* field is ignored by this packages
 // `json:"-"` 사용 field 를 무시
 //7.MarshalText 는 Field가 json string으로써 어떻게 보일지 결정하는 method
+
+
+# NewServeMux
+
+```
+// HandleFunc registers the handler function for the given pattern
+// in the DefaultServeMux.
+// The documentation for ServeMux explains how patterns are matched.
+func HandleFunc(pattern string, handler func(ResponseWriter, *Request)) {
+	DefaultServeMux.HandleFunc(pattern, handler)
+}
+
+```
+Mux는 multiplexer 
+url로 request 를 다루는 것
+url을 지켜보고 내가 원하는 함수를 실행
+client 가 request 를
+보내면 multiplex가
+그 request 를 확인
+
+Gorilla mux
+go get -u github.com/gorilla/mux
