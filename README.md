@@ -153,3 +153,22 @@ Handler 가 가져야 하는 ServerHTTP method 를
 adapter가 하는 것은
 여기 명시된 형태(type 의 유형)에 맞는 겋 보내라고 알려준다
 
+# CLI
+Command Line Interface
+
+standard library 에 있는 flag 사용
+CLI를 구축하는 것을 도와준다
+
+참고로
+go 로 CLI를 만드는 framework 가 있는데
+cobra 이다
+cobra 는 CLI를 만들 때 필요한 많은 도우미 function 을 제공해준다.
+
+
+1. 일단 console과 상호작용하면서
+유저가 보낸 command 는 어떻게 얻을 수 있는지
+os.Args
+```
+C:\github\golang\nomadcoin>go run main.go rest
+[C:\Users\me\AppData\Local\Temp\go-build3973503983\b001\exe\main.exe rest]
+```
