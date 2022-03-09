@@ -1,0 +1,11 @@
+##
+GET http://localhost:3000/
+###
+GET http://localhost:3000/blocks/3
+
+###
+POST http://localhost:3000/blocks
+
+{
+"message":"Data for my block"
+}

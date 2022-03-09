@@ -2,14 +2,18 @@ package blockchain
 
 import (
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"sync"
 )
 
+//struct tag ? => `json:"data"`
+//empty 일때 안보이도록 omit 해야 한다
 type Block struct {
-	Data    string
-	Hash    string
-	PreHash string
+	Data    string `json:"data"`
+	Hash    string `json:"hash"`
+	PreHash string `json:"prehash,omitempty"`
+	Height  int    `json:"height"`
 }
 type blockchain struct {
 	blocks []*Block // pointer 들의 slice
@@ -35,6 +39,9 @@ var b *blockchain
 //Once 는 단 한번만 호출되도록 해주는 함수
 var once sync.Once
 
+//#6.7 Error Handling
+var ErrNotFound = errors.New("block not found")
+
 func GetBlockchain() *blockchain {
 	if b == nil {
 		//b를 초기화 (처음이자 마지막)
@@ -51,10 +58,12 @@ func (b *blockchain) AddBlock(data string) {
 }
 
 func createBlock(data string) *Block {
+	//Hegith -> blockchain 이 얼마나 긴지
 	newBlock := Block{
 		Data:    data,
 		Hash:    "",
 		PreHash: getLastHash(),
+		Height:  len(GetBlockchain().blocks) + 1,
 	}
 	newBlock.calculateHash()
 	return &newBlock
@@ -73,6 +82,13 @@ func (b *Block) calculateHash() {
 }
 func (b *blockchain) AllBlocks() []*Block {
 	return b.blocks
+}
+
+func (b *blockchain) GetBlock(height int) (*Block, error) {
+	if height > len(b.blocks) {
+		return nil, ErrNotFound
+	}
+	return b.blocks[height-1], nil
 }
 
 /*//해당 function 이 하나의 일만 하도록 refactoring
