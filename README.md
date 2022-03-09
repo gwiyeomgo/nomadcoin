@@ -120,3 +120,36 @@ client 가 request 를
 
 Gorilla mux
 go get -u github.com/gorilla/mux
+
+# Atoi
+
+# adapter 패턴
+
+http.HandlerFunc
+사실 이건 function이 아니라 type이다
+http.HandlerFunc 이 return 하는 http.Handler
+는 interface
+이 interface는 ServeHTTP 라는 method 를 구현
+
+HandlerFunc 라는type은 바로 adapter 이다
+HandlerFunc 은 매개변수로
+func(rw http.ResponseWriter,r *http.Request){
+}) 
+를 쓴다면
+함수를 호출하는 것이 아닌 type을 만드는 것이다
+
+HandlerFunc type 이 어떻게
+Handler interface 로 인식되는가?
+adapter 의 힘
+adapter 에게 적절한 argument 를 보내주면
+그 다음, adapter 는 네가 필요한 것들을 구현해준다.
+
+type? 
+우리가 보낸 function이 이 조건에 부합하는지를 보고
+receiver function의 훌륭함 덕택에
+Handler 가 가져야 하는 ServerHTTP method 를 
+구현할 거다
+즉, 우리가 직접 struct 혹은 type을 만들어서ServeHTTP 를 구현하는 대신
+adapter가 하는 것은
+여기 명시된 형태(type 의 유형)에 맞는 겋 보내라고 알려준다
+

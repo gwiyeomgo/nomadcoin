@@ -8,6 +8,7 @@ import (
 	"github.com/gwiyeomgo/nomadcoin/utils"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type url string
@@ -31,12 +32,16 @@ type AddBlockBody struct {
 	Message string
 }
 
+type errorResponse struct {
+	ErrorMessage string `json:"errorMessage"`
+}
+
 func blocks(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		//Encode 가 Marshal 일을 헤주고
 		//결과를 ResponseWriter 에 작성
-		rw.Header().Add("Content-Type", "application/json")
+		//rw.Header().Add("Content-Type", "application/json")
 		json.NewEncoder(rw).Encode(blockchain.GetBlockchain().AllBlocks())
 	case "POST":
 		//request 의 body를 받는다.
@@ -66,6 +71,10 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Method:      "POST",
 			Description: "Add a block",
 			Payload:     "data:string",
+		}, {
+			URL:         url("/blocks/{height}"),
+			Method:      "GET",
+			Description: "See a block",
 		},
 	}
 	//data 를 json 으로 변경
@@ -85,7 +94,7 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 	//fmt.Fprintf => console 아닌 writer 에 작성하고 싶을때
 	//string 형태로 writer 에 담아서 보냄
 	//4.이때 content-type =json으로 보내기 위해서
-	rw.Header().Add("Content-Type", "application/json")
+	//rw.Header().Add("Content-Type", "application/json")
 	//fmt.Fprintf(rw,"%s",b)
 	//5.더 쉬운 방법 json.NewEncoder()
 	// data(struct)을 encode 해서 writer 에 담아 보냄
@@ -94,8 +103,30 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 }
 func block(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id := vars["id"]
+	height, err := strconv.Atoi(vars["height"])
+	utils.HandleErr(err)
+	//height는 string 이기때문에 int 로 convert
+	//strconv 패키기 이용
+	block, err := blockchain.GetBlockchain().GetBlock(height)
+	encoder := json.NewEncoder(rw)
+	if err == blockchain.ErrNotFound {
+		encoder.Encode(errorResponse{fmt.Sprint(err)})
+	} else {
+		encoder.Encode(block)
+	}
+}
 
+//모든 request에 content-type을 설정하는 middlewares 추가하기
+//middleware 는 function 인데 먼저 호출되고
+//다음 function을 부르고 그럼 거기서 또 다음 function을 부른다
+
+func jsonContentTypeMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, request *http.Request) {
+		//response
+		rw.Header().Add("Content-Type", "application/json")
+		//(2) 다음 handlerFunc 호출
+		next.ServeHTTP(rw, request)
+	})
 }
 
 func Start(aPort int) {
@@ -110,9 +141,15 @@ func Start(aPort int) {
 	//이렇게 바꿈으로
 	//ListenAndServe 함수에 기본 multiplexer 가 기본이 아닌 handler 사용하도록
 	//.Methods("GET") 을 쓰면 다른 method로 부터 보호해 준다.
+
+	//middleware function
+	//마지막 목적지 전에 호출되는 녀석
+	//(1)호출
+	router.Use(jsonContentTypeMiddleware)
+	//(3) HandleFunc 호출
 	router.HandleFunc("/", documentation).Methods("GET")
 	router.HandleFunc("/blocks", blocks).Methods("GET", "PUT")
-	router.HandleFunc("/blocks/{id:[0-9]+}", block).Methods("GET")
+	router.HandleFunc("/blocks/{height:[0-9]+}", block).Methods("GET")
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))
 }
