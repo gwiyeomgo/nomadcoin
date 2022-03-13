@@ -1,6 +1,6 @@
 package main
 
-import "github.com/gwiyeomgo/nomadcoin/cli"
+import "github.com/gwiyeomgo/nomadcoin/blockchain"
 
 /*func main() {
 	//port 2개 실행시 go 사용
@@ -10,7 +10,8 @@ import "github.com/gwiyeomgo/nomadcoin/cli"
 
 func main() {
 	//CLI 는 유저에게 flag 를 입력하도록 요청
-	cli.Start()
+	//cli.Start()
+	blockchain.Blockchain()
 }
 
 //과제?

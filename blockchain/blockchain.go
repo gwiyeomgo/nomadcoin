@@ -1,15 +1,9 @@
 package blockchain
 
-import (
-	"crypto/sha256"
-	"errors"
-	"fmt"
-	"sync"
-)
-
+//version2
 //struct tag ? => `json:"data"`
 //empty 일때 안보이도록 omit 해야 한다
-type Block struct {
+/*type Block struct {
 	Data    string `json:"data"`
 	Hash    string `json:"hash"`
 	PreHash string `json:"prehash,omitempty"`
@@ -89,8 +83,8 @@ func (b *blockchain) GetBlock(height int) (*Block, error) {
 		return nil, ErrNotFound
 	}
 	return b.blocks[height-1], nil
-}
-
+}*/
+//version1
 /*//해당 function 이 하나의 일만 하도록 refactoring
 //복사본이 아닌 원본에 영향이 가길 원하기 때문에 * 포인터를 리시버에쓴다
 func (b *blockchain) addBlock(data string) {

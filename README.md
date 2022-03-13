@@ -172,3 +172,41 @@ os.Args
 C:\github\golang\nomadcoin>go run main.go rest
 [C:\Users\me\AppData\Local\Temp\go-build3973503983\b001\exe\main.exe rest]
 ```
+#8 Bolt
+persistence 는 기본적으로 DB 백엔드를 블록체인에 더한다는 의미
+서버를 재시작하면 저장해던 내용이 사라진다
+기존 코드에서는 slice block 을 담고
+메모리에 저장했었다.
+block slice 는 memory 에 저장할 필요가 없다
+db에 검색하는 기능
+
+go의 key/value db 인 bolt
+bolt 를 선택한 이유?
+bolt 프로그램은 안정적이라 더 바뀔 일 없기 때문에
+완전히 완성되었다 봅니다.
+더 이상 변화 없음
+
+변화무쌍한 자바스크립트 생태계와 다르게..
+
+* DB의 경우
+1. DB파일이 존재하지 않으면 파일을 만들어서 initialize 한다
+`go get github.com/boltdb/bolt/...`
+
+
+# boltbrowser
+comand line interface로
+bolt 파일을 열어서 확인해 볼 수 있다.
+https://github.com/br0xen/boltbrowser
+`go get github.com/br0xen/boltbrowser`
+
+`boltbrowser <filename>` => bucket 생성
+
+-> 확인 못합
+환경변수에  GOPATH 추가 돼 있는지 확인
+# bloltdbweb 
+buchet 을 볼 수 있고
+원한다면 직접 자료를 추가 가능
+
+-> 확인 못합
+https://github.com/evnix/boltdbweb
+go get github.com/evnix/boltdbweb
