@@ -64,9 +64,9 @@ func home(writer http.ResponseWriter, request *http.Request) {
 
 	data := homeData{
 		PageTitle: "HOME",
-		//Blocks:    blockchain.GetBlockchain().AllBlocks(),
-		//blockchain 에 있는 모든 block 을 갖다주는 function
 	}
+	//Blocks:    blockchain.GetBlockchain().AllBlocks(),
+	//blockchain 에 있는 모든 block 을 갖다주는 function
 	//template으로 data 를 보냄
 	//template 내부에서는 pageTitle 이라고 하는 field 를 기다리고 있음
 	//tmpl.Execute(writer, data)

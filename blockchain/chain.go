@@ -37,7 +37,7 @@ func (b *blockchain) persist() {
 //db에 block 을 저장하는 코드
 //블록체인을 처음 실행시키는 사람의 관점
 func (b *blockchain) AddBlock(data string) {
-	block := createBlock(data, b.NewestHash, b.Height)
+	block := createBlock(data, b.NewestHash, b.Height+1)
 	b.NewestHash = block.Hash
 	b.Height = block.Height
 	b.persist()
@@ -55,13 +55,13 @@ func Blockchain() *blockchain {
 			if checkpoint == nil {
 				b.AddBlock("Genesis")
 			} else {
-				fmt.Println("...Restore")
+				//fmt.Println("...Restore")
 				//restore b from bytes (db 에는 bytes로 저장되어 있음)
 				b.restore(checkpoint)
 			}
 		})
 	}
-	fmt.Println(b.NewestHash)
+	fmt.Printf("NewesHash:%s\nHeight:%d\n", b.NewestHash, b.Height)
 	return b
 }
 

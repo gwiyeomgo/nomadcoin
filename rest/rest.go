@@ -68,11 +68,15 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 		},
 		{
 			URL:         url("/blocks"),
+			Method:      "GET",
+			Description: "See a block",
+		},
+		{
+			URL:         url("/blocks"),
 			Method:      "POST",
 			Description: "Add a block",
 			Payload:     "data:string",
 		}, {
-			//URL:         url("/blocks/{height}"),
 			URL:         url("/blocks/{hash}"),
 			Method:      "GET",
 			Description: "See a block",
@@ -153,7 +157,7 @@ func Start(aPort int) {
 	router.Use(jsonContentTypeMiddleware)
 	//(3) HandleFunc 호출
 	router.HandleFunc("/", documentation).Methods("GET")
-	router.HandleFunc("/blocks", blocks).Methods("GET", "PUT")
+	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
 	//router.HandleFunc("/blocks/{height:[0-9]+}", block).Methods("GET")
 	//hexadecimal 을 a-f 와 숫자를 갖는 포맷
 	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET")
