@@ -1,7 +1,8 @@
 ##
 GET http://localhost:3000/
 ###
-GET http://localhost:3000/blocks/3
+//GET http://localhost:3000/blocks/3
+GET http://localhost:3000/blocks/c4a1d77ecf0ee407f8ca42fced1f99fb8c09116381355df29646e63bddda595c
 
 ###
 POST http://localhost:3000/blocks

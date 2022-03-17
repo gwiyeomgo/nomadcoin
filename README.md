@@ -201,12 +201,52 @@ https://github.com/br0xen/boltbrowser
 
 `boltbrowser <filename>` => bucket 생성
 
--> 확인 못합
-환경변수에  GOPATH 추가 돼 있는지 확인
-# bloltdbweb 
-buchet 을 볼 수 있고
-원한다면 직접 자료를 추가 가능
+creae root bucket 에 blocks 를 써주고
+
+go build main.go 실행
+`boltbrowser <filename>` 실행해더니
++data가 생겼음
 
 -> 확인 못합
 https://github.com/evnix/boltdbweb
 go get github.com/evnix/boltdbweb
+
+
+https://stackoverflow.com/questions/41836209/only-one-usage-of-each-socket-address-protocol-network-address-port-is-normall
+
+Troubleshooting Port Conflicts (Only one usage of each socket address is normally permitted)
+=> port conflict
+https://kb.fastvue.co/fortigate/s/article/troubleshooting-port-conflicts-only-one-usage-of-each-socket-address-is-normally-permitted
+https://m.blog.naver.com/PostView.naver?isHttpsRedirect=true&blogId=ysw1130&logNo=220159168596
+port 찾기
+netstat -ano | find "8080"
+
+This will list all the processes on the machine using port 8080 (it may also include other processes that have a substring of 8080).
+
+1.어플리케이션을 처음실행
+메모리에 저장하는 것이 아니라
+필요하면 DB를 찾아서 화면에 보여지도록 작업
+Blockchain() 실행시 
+블록체인이 initialize 되고 (singleton)
+
+빈 블록체인 만들고
+DB에서 블록체인에 checkpoint 가 저장되어 있는지 확인한다.
+
+JSON을 encoding/decoding 작업
+gob package를 이용
+//ToBytes
+//FromBytes
+
+chckpoint 를 추가해서 block을 저장
+
+2.db에 블록이 저장되어 있을때
+blockchain.db에서 checkpoint를 불러와서 byte를 찾음
+블록체인 복원
+->FindBlock 은 hash를 받고 Block 포인터 반환
+
+Get All Block
+Blocks 함수
+
+
+
+

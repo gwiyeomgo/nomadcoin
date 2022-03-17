@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/gwiyeomgo/nomadcoin/explorer"
 	"github.com/gwiyeomgo/nomadcoin/rest"
-	"os"
+	"runtime"
 )
 
 //CLI 적용
@@ -17,8 +17,10 @@ func usage() {
 	fmt.Printf("Please use the flollowing flags:\n\n")
 	fmt.Printf("-port:	Set the PORT of the server\n")
 	fmt.Printf("-mode:	Choose between 'html' and 'rest'\n\n")
-	//프로그램을 종료시킴
-	os.Exit(0)
+	//프로그램을 종료시킴 => def 사용 후 종료되도록 수정
+	//os.Exit(0)
+	//GoExit 은 모든 함수를 제거하지만 그전에 defer 를 먼지 이행
+	runtime.Goexit()
 }
 func Start() {
 	//fmt.Println(os.Args)//string 문자열의 array

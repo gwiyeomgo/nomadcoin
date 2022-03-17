@@ -8,7 +8,6 @@ import (
 	"github.com/gwiyeomgo/nomadcoin/utils"
 	"log"
 	"net/http"
-	"strconv"
 )
 
 type url string
@@ -42,7 +41,8 @@ func blocks(rw http.ResponseWriter, r *http.Request) {
 		//Encode 가 Marshal 일을 헤주고
 		//결과를 ResponseWriter 에 작성
 		//rw.Header().Add("Content-Type", "application/json")
-		json.NewEncoder(rw).Encode(blockchain.GetBlockchain().AllBlocks())
+		//json.NewEncoder(rw).Encode(blockchain.GetBlockchain().AllBlocks())
+		json.NewEncoder(rw).Encode(blockchain.Blockchain().Blocks())
 	case "POST":
 		//request 의 body를 받는다.
 		//rest client 로 insomnia ,postman 등 사용
@@ -52,7 +52,7 @@ func blocks(rw http.ResponseWriter, r *http.Request) {
 		//& 포인터를 더해주면 addBlockBody 주소를 전달 (복사본 x)
 		utils.HandleErr(json.NewDecoder(r.Body).Decode(&addBlockBody))
 		//request body 의 message로 새 블록 추가한다
-		blockchain.GetBlockchain().AddBlock(addBlockBody.Message)
+		blockchain.Blockchain().AddBlock(addBlockBody.Message)
 		rw.WriteHeader(http.StatusCreated) //201
 
 	}
@@ -72,7 +72,8 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Description: "Add a block",
 			Payload:     "data:string",
 		}, {
-			URL:         url("/blocks/{height}"),
+			//URL:         url("/blocks/{height}"),
+			URL:         url("/blocks/{hash}"),
 			Method:      "GET",
 			Description: "See a block",
 		},
@@ -103,11 +104,15 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 }
 func block(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	height, err := strconv.Atoi(vars["height"])
-	utils.HandleErr(err)
+	//height, err := strconv.Atoi(vars["height"])
+	//strconv.Atoi string to int
+	//utils.HandleErr(err)
+	hash := vars["hash"]
 	//height는 string 이기때문에 int 로 convert
 	//strconv 패키기 이용
-	block, err := blockchain.GetBlockchain().GetBlock(height)
+	//block, err := blockchain.GetBlockchain().GetBlock(height)
+	block, err := blockchain.FindBlock(hash)
+
 	encoder := json.NewEncoder(rw)
 	if err == blockchain.ErrNotFound {
 		encoder.Encode(errorResponse{fmt.Sprint(err)})
@@ -149,7 +154,9 @@ func Start(aPort int) {
 	//(3) HandleFunc 호출
 	router.HandleFunc("/", documentation).Methods("GET")
 	router.HandleFunc("/blocks", blocks).Methods("GET", "PUT")
-	router.HandleFunc("/blocks/{height:[0-9]+}", block).Methods("GET")
+	//router.HandleFunc("/blocks/{height:[0-9]+}", block).Methods("GET")
+	//hexadecimal 을 a-f 와 숫자를 갖는 포맷
+	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET")
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))
 }

@@ -21,3 +21,12 @@ func ToBytes(i interface{}) []byte {
 	HandleErr(encoder.Encode(i))
 	return blockBuffer.Bytes()
 }
+
+//bytes decode
+//db에서 찾은 byte를 텅빈 블록체인의 memory address 에 decode
+func FromBytes(i interface{}, data []byte) {
+	/*decoder := gob.NewDecoder(bytes.NewReader(data))
+	decoder.Decode(b)*/
+	encoder := gob.NewDecoder(bytes.NewReader(data))
+	HandleErr(encoder.Decode(i))
+}

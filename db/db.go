@@ -10,6 +10,7 @@ const (
 	dbName       = "blockchain.db"
 	dataBucket   = "data"
 	blocksBucket = "blocks"
+	checkPoint   = "checkpoint"
 )
 
 //(1)Singleton 패턴을 사용해서 export 되지 않는 벼누를 마들고
@@ -19,6 +20,10 @@ var db *bolt.DB
 //db initialize function
 func DB() *bolt.DB {
 	if db == nil {
+
+		//* open 이후에는 자료를 해방해 주고,
+		//data 손상을 방지하기 위해 DB를 닫아줘야 한다.
+
 		//DB로 연결 open, db와 상호작용 할 수 있도록
 		//1.make bucket = sql 에 table 과 같은 존재
 		dbPointer, err := bolt.Open(dbName, 0600, nil)
@@ -38,6 +43,9 @@ func DB() *bolt.DB {
 	return db
 }
 
+func Close() {
+	DB().Close()
+}
 func SaveBlock(hash string, data []byte) {
 	fmt.Printf("Saving Block %s\nData: %b\n", hash, data)
 	// (2)blockchain DB를 설정,생성
@@ -49,12 +57,34 @@ func SaveBlock(hash string, data []byte) {
 	utils.HandleErr(err)
 }
 
-func SaveBlockchain(data []byte) {
+func SaveCheckpoint(data []byte) {
 	err := DB().Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(dataBucket))
 		//key/value 추가
-		err := bucket.Put([]byte("checkpoint"), data)
+		err := bucket.Put([]byte(checkPoint), data)
 		return err
 	})
 	utils.HandleErr(err)
+}
+
+func Checkpoint() []byte {
+	var data []byte
+	DB().View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(dataBucket))
+		data = bucket.Get([]byte(checkPoint))
+		//bucket 은 err 반환 X
+		return nil
+	})
+	return data
+}
+
+func Block(hash string) []byte {
+	var data []byte
+	//DB에 blocksBucket 에서 특정 블록을 찾는다
+	DB().View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(blocksBucket))
+		data = bucket.Get([]byte(hash))
+		return nil
+	})
+	return data
 }

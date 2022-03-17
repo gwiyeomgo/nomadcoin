@@ -33,7 +33,8 @@ func add(writer http.ResponseWriter, request *http.Request) {
 		request.ParseForm()
 		//type Values map[string][]string
 		blockData := request.Form.Get("blockData")
-		blockchain.GetBlockchain().AddBlock(blockData)
+		//blockchain.GetBlockchain().AddBlock(blockData)
+		blockchain.Blockchain().AddBlock(blockData)
 		//redirect
 		//http function rediect
 		http.Redirect(writer, request, "/", http.StatusPermanentRedirect)
@@ -63,7 +64,7 @@ func home(writer http.ResponseWriter, request *http.Request) {
 
 	data := homeData{
 		PageTitle: "HOME",
-		Blocks:    blockchain.GetBlockchain().AllBlocks(),
+		//Blocks:    blockchain.GetBlockchain().AllBlocks(),
 		//blockchain 에 있는 모든 block 을 갖다주는 function
 	}
 	//template으로 data 를 보냄
