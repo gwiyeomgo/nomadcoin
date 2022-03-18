@@ -57,6 +57,11 @@ func blocks(rw http.ResponseWriter, r *http.Request) {
 
 	}
 }
+
+func status(rw http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(rw).Encode(blockchain.Blockchain())
+}
+
 func documentation(rw http.ResponseWriter, r *http.Request) {
 	// data 는 Go의 세계에 있는 slice
 	//struct 의 slice
@@ -65,6 +70,11 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			URL:         url("/"),
 			Method:      "GET",
 			Description: "test",
+		},
+		{
+			URL:         url("/status"),
+			Method:      "GET",
+			Description: "See the Status of the Blockchain",
 		},
 		{
 			URL:         url("/blocks"),
@@ -157,6 +167,7 @@ func Start(aPort int) {
 	router.Use(jsonContentTypeMiddleware)
 	//(3) HandleFunc 호출
 	router.HandleFunc("/", documentation).Methods("GET")
+	router.HandleFunc("/status", status).Methods("GET")
 	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
 	//router.HandleFunc("/blocks/{height:[0-9]+}", block).Methods("GET")
 	//hexadecimal 을 a-f 와 숫자를 갖는 포맷

@@ -1,15 +1,15 @@
 package blockchain
 
 import (
-	"crypto/sha256"
 	"errors"
 	"fmt"
 	"github.com/gwiyeomgo/nomadcoin/db"
 	"github.com/gwiyeomgo/nomadcoin/utils"
 	"strings"
+	"time"
 )
 
-const difficulty int = 2
+//const difficulty int = 2
 
 type Block struct {
 	Data       string `json:"data"`
@@ -18,6 +18,7 @@ type Block struct {
 	Height     int    `json:"height"`
 	Difficulty int    `json:"difficulty"`
 	Nonce      int    `json:"nonce"`
+	Timestamp  int    `json:"timestamp"` // 블록 당 생성시간을 알 수 있음
 }
 
 //utils로 빼줌
@@ -56,7 +57,7 @@ func createBlock(data string, preHash string, height int) Block {
 		Hash:       "",
 		PreHash:    preHash,
 		Height:     height,
-		Difficulty: difficulty,
+		Difficulty: Blockchain().difficulty(),
 		Nonce:      0,
 	}
 	/*	payload := block.Data + block.PreHash + fmt.Sprint(block.Height)
@@ -73,10 +74,13 @@ func (b *Block) mine() {
 	target := strings.Repeat("0", b.Difficulty)
 	//nonce 를 개속 늘려 원하는 값을 찾는다.
 	for {
+		//블록을 hash 하기 전에 블록 타임스템프를 지정하고
+		b.Timestamp = int(time.Now().Unix()) //.Unix() 는 int64 를 반환
 		//hash 를 16진수의 string 으로 변경
-		blockAsString := fmt.Sprint(b)
-		hash := fmt.Sprintf("%x", sha256.Sum256([]byte(blockAsString)))
-		fmt.Printf("block as string:%s\nhash:%s\nnonce:%d\n\n\n", blockAsString, hash, b.Nonce)
+		//blockAsString := fmt.Sprint(b)
+		//hash := fmt.Sprintf("%x", sha256.Sum256([]byte(blockAsString)))
+		hash := utils.Hash(b)
+		fmt.Printf("Target:%s\nHash:%s\nnonce:%s\n\n", target, hash, b.Nonce)
 		if strings.HasPrefix(hash, target) {
 			b.Hash = hash
 			break
