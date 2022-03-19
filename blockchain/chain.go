@@ -43,8 +43,10 @@ func (b *blockchain) persist() {
 //블록이 새로 만들어 질떄마다 블록과 블록체인의 상황을 db에 저장
 //db에 block 을 저장하는 코드
 //블록체인을 처음 실행시키는 사람의 관점
-func (b *blockchain) AddBlock(data string) {
-	block := createBlock(data, b.NewestHash, b.Height+1)
+//func (b *blockchain) AddBlock(data string) {
+func (b *blockchain) AddBlock() {
+	//block := createBlock(data, b.NewestHash, b.Height+1)
+	block := createBlock(b.NewestHash, b.Height+1)
 	b.NewestHash = block.Hash
 	b.Height = block.Height
 	//difficulty 지정
@@ -106,7 +108,8 @@ func Blockchain() *blockchain {
 			// search for checkpoint on the db (db에서 블록체인을 가져오는 함수)
 			checkpoint := db.Checkpoint()
 			if checkpoint == nil {
-				b.AddBlock("Genesis")
+				//b.AddBlock("Genesis")
+				b.AddBlock()
 			} else {
 				//fmt.Println("...Restore")
 				//restore b from bytes (db 에는 bytes로 저장되어 있음)
@@ -136,4 +139,40 @@ func (b *blockchain) Blocks() []*Block {
 		}
 	}
 	return blocks
+}
+
+//1. 모든 거래 출력값만 반환하는 함수
+func (b *blockchain) txOuts() (txOuts []*TxOut) {
+	blocks := b.Blocks()
+	for _, block := range blocks {
+		for _, tx := range block.Transaction {
+			//배열을 합할때 ... 사용
+			//모든 거래내역의 출력값을 하나의 슬라이스에 모음
+			txOuts = append(txOuts, tx.TxOuts...)
+		}
+	}
+	return txOuts
+}
+
+//2.거래 출력값들을 주소에 따라 걸러 낸다
+func (b blockchain) TxOutsByAddress(address string) []*TxOut {
+	var ownedTxOuts []*TxOut
+	txOuts := b.txOuts()
+	for _, txOut := range txOuts {
+		if txOut.Owner == address {
+			ownedTxOuts = append(ownedTxOuts, txOut)
+		}
+	}
+	return ownedTxOuts
+}
+
+//3.단하나의 주소만 보여주도록
+
+func (b blockchain) BalanceByAddress(address string) int {
+	txOuts := b.TxOutsByAddress(address)
+	var result int
+	for _, tx := range txOuts {
+		result += tx.Amount
+	}
+	return result
 }

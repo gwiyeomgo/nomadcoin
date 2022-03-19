@@ -32,9 +32,10 @@ func add(writer http.ResponseWriter, request *http.Request) {
 		//form 을 parser 해준다.
 		request.ParseForm()
 		//type Values map[string][]string
-		blockData := request.Form.Get("blockData")
+		//blockData := request.Form.Get("blockData")
 		//blockchain.GetBlockchain().AddBlock(blockData)
-		blockchain.Blockchain().AddBlock(blockData)
+		//blockchain.Blockchain().AddBlock(blockData)
+		blockchain.Blockchain().AddBlock()
 		//redirect
 		//http function rediect
 		http.Redirect(writer, request, "/", http.StatusPermanentRedirect)

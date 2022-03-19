@@ -35,6 +35,24 @@ type errorResponse struct {
 	ErrorMessage string `json:"errorMessage"`
 }
 
+type balanceResponse struct {
+	Address string `json:"address"`
+	Balance int    `json:"balance"`
+}
+
+func balance(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	address := vars["address"]
+	//쿼리 파라미터 받기
+	total := r.URL.Query().Get("total")
+	switch total {
+	case "true":
+		amount := blockchain.Blockchain().BalanceByAddress(address)
+		json.NewEncoder(rw).Encode(balanceResponse{Address: address, Balance: amount})
+	default:
+		utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Blockchain().TxOutsByAddress(address)))
+	}
+}
 func blocks(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
@@ -47,12 +65,14 @@ func blocks(rw http.ResponseWriter, r *http.Request) {
 		//request 의 body를 받는다.
 		//rest client 로 insomnia ,postman 등 사용
 		//request body를 struct 로 decode 한다
-		var addBlockBody AddBlockBody
 		//read 할땐 decode
 		//& 포인터를 더해주면 addBlockBody 주소를 전달 (복사본 x)
-		utils.HandleErr(json.NewDecoder(r.Body).Decode(&addBlockBody))
+		//*json을 go로 변환시키는 법
+		//var addBlockBody AddBlockBody
+		//utils.HandleErr(json.NewDecoder(r.Body).Decode(&addBlockBody))
 		//request body 의 message로 새 블록 추가한다
-		blockchain.Blockchain().AddBlock(addBlockBody.Message)
+		//blockchain.Blockchain().AddBlock(addBlockBody.Message)
+		blockchain.Blockchain().AddBlock()
 		rw.WriteHeader(http.StatusCreated) //201
 
 	}
@@ -86,10 +106,15 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Method:      "POST",
 			Description: "Add a block",
 			Payload:     "data:string",
-		}, {
+		},
+		{
 			URL:         url("/blocks/{hash}"),
 			Method:      "GET",
 			Description: "See a block",
+		}, {
+			URL:         url("/balance/{address}"),
+			Method:      "GET",
+			Description: "Get TxOuts for an address",
 		},
 	}
 	//data 를 json 으로 변경
@@ -169,6 +194,7 @@ func Start(aPort int) {
 	router.HandleFunc("/", documentation).Methods("GET")
 	router.HandleFunc("/status", status).Methods("GET")
 	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
+	router.HandleFunc("/balance/{address}", balance)
 	//router.HandleFunc("/blocks/{height:[0-9]+}", block).Methods("GET")
 	//hexadecimal 을 a-f 와 숫자를 갖는 포맷
 	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET")

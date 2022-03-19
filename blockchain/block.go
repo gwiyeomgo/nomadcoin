@@ -10,15 +10,17 @@ import (
 )
 
 //const difficulty int = 2
-
+//Block 에 Data는 지우고
+// Transaction 추가
 type Block struct {
-	Data       string `json:"data"`
-	Hash       string `json:"hash"`
-	PreHash    string `json:"prehash,omitempty"`
-	Height     int    `json:"height"`
-	Difficulty int    `json:"difficulty"`
-	Nonce      int    `json:"nonce"`
-	Timestamp  int    `json:"timestamp"` // 블록 당 생성시간을 알 수 있음
+	//	Data       string `json:"data"`
+	Hash        string `json:"hash"`
+	PreHash     string `json:"prehash,omitempty"`
+	Height      int    `json:"height"`
+	Difficulty  int    `json:"difficulty"`
+	Nonce       int    `json:"nonce"`
+	Timestamp   int    `json:"timestamp"` // 블록 당 생성시간을 알 수 있음
+	Transaction []*Tx  `json:"transaction"`
 }
 
 //utils로 빼줌
@@ -51,14 +53,17 @@ func FindBlock(hash string) (*Block, error) {
 	block.restore(blockBytes)
 	return block, nil
 }
-func createBlock(data string, preHash string, height int) Block {
+
+//func createBlock(data string, preHash string, height int) Block {
+func createBlock(preHash string, height int) Block {
 	block := Block{
-		Data:       data,
-		Hash:       "",
-		PreHash:    preHash,
-		Height:     height,
-		Difficulty: Blockchain().difficulty(),
-		Nonce:      0,
+		//		Data:       data,
+		Hash:        "",
+		PreHash:     preHash,
+		Height:      height,
+		Difficulty:  Blockchain().difficulty(),
+		Nonce:       0,
+		Transaction: []*Tx{makeCoinbaseTx("gwiyeom")},
 	}
 	/*	payload := block.Data + block.PreHash + fmt.Sprint(block.Height)
 		block.Hash = fmt.Sprintf("%x", sha256.Sum256([]byte(payload)))
