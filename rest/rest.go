@@ -40,6 +40,11 @@ type balanceResponse struct {
 	Balance int    `json:"balance"`
 }
 
+type addTxPayload struct {
+	To     string `json:"to"`
+	Amount int    `json:"amount"`
+}
+
 func balance(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	address := vars["address"]
@@ -82,6 +87,21 @@ func status(rw http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(rw).Encode(blockchain.Blockchain())
 }
 
+func mempool(rw http.ResponseWriter, r *http.Request) {
+	utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Mempool.Txs))
+}
+
+func transaction(rw http.ResponseWriter, r *http.Request) {
+	var payload addTxPayload
+	//reqeust body 값을 받고
+	json.NewDecoder(r.Body).Decode(&payload)
+	err := blockchain.Mempool.AddTx(payload.To, payload.Amount)
+	if err != nil {
+		json.NewEncoder(rw).Encode(errorResponse{"not enough funds"})
+	}
+	rw.WriteHeader(http.StatusCreated)
+}
+
 func documentation(rw http.ResponseWriter, r *http.Request) {
 	// data 는 Go의 세계에 있는 slice
 	//struct 의 slice
@@ -111,10 +131,21 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			URL:         url("/blocks/{hash}"),
 			Method:      "GET",
 			Description: "See a block",
-		}, {
+		},
+		{
 			URL:         url("/balance/{address}"),
 			Method:      "GET",
 			Description: "Get TxOuts for an address",
+		},
+		{
+			URL:         url("/mempool;"),
+			Method:      "GET",
+			Description: "See Mempol",
+		},
+		{
+			URL:         url("/transaction"),
+			Method:      "POST",
+			Description: "ADD Transaction to Mempool",
 		},
 	}
 	//data 를 json 으로 변경
@@ -198,6 +229,8 @@ func Start(aPort int) {
 	//router.HandleFunc("/blocks/{height:[0-9]+}", block).Methods("GET")
 	//hexadecimal 을 a-f 와 숫자를 갖는 포맷
 	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET")
+	router.HandleFunc("/mempool", mempool)
+	router.HandleFunc("/transaction", transaction).Methods("POST")
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))
 }

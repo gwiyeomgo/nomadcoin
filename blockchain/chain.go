@@ -141,6 +141,8 @@ func (b *blockchain) Blocks() []*Block {
 	return blocks
 }
 
+// 어떤 사용자 ,혹은 주소가 블록체인에 자산을 얼마나 갖고 있는지 찾아내는 함수
+// 채굴자 주소가 소유중인 모든 출력값을 찾아라
 //1. 모든 거래 출력값만 반환하는 함수
 func (b *blockchain) txOuts() (txOuts []*TxOut) {
 	blocks := b.Blocks()
