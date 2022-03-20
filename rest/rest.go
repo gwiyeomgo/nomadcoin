@@ -52,10 +52,10 @@ func balance(rw http.ResponseWriter, r *http.Request) {
 	total := r.URL.Query().Get("total")
 	switch total {
 	case "true":
-		amount := blockchain.Blockchain().BalanceByAddress(address)
+		amount := blockchain.BalanceByAddress(blockchain.Blockchain(), address)
 		json.NewEncoder(rw).Encode(balanceResponse{Address: address, Balance: amount})
 	default:
-		utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Blockchain().TxOutsByAddress(address)))
+		utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.UTxOutsByAddress(blockchain.Blockchain(), address)))
 	}
 }
 func blocks(rw http.ResponseWriter, r *http.Request) {
@@ -65,7 +65,8 @@ func blocks(rw http.ResponseWriter, r *http.Request) {
 		//결과를 ResponseWriter 에 작성
 		//rw.Header().Add("Content-Type", "application/json")
 		//json.NewEncoder(rw).Encode(blockchain.GetBlockchain().AllBlocks())
-		json.NewEncoder(rw).Encode(blockchain.Blockchain().Blocks())
+		//json.NewEncoder(rw).Encode(blockchain.Blockchain().Blocks())
+		json.NewEncoder(rw).Encode(blockchain.Blocks(blockchain.Blockchain()))
 	case "POST":
 		//request 의 body를 받는다.
 		//rest client 로 insomnia ,postman 등 사용

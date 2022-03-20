@@ -3,7 +3,7 @@ Content-Type: application/json
 
 {
   "to": "coco",
-  "amount" : 20
+  "amount" : 50
 }
 
 ###
@@ -13,10 +13,6 @@ Accept: application/json
 ###
 POST http://localhost:3000/blocks
 Content-Type: application/json
-
-{
-"message":"Mine me"
-}
 
 
 ###

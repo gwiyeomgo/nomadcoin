@@ -320,3 +320,29 @@ Mempoll 은 아직 확정되지 않은
 이것저것을 다 준 다음에
 mempool에 와서 이 거래내역들을 블록에 추가
 mempool 은 아직 확인되지 않은 거래내역들을 보관하는 곳
+
+# uTxOuts
+
+Tx1 
+	TxIn[COINBASE]
+	TxOut[$5(you)] (1) Spent TxOut
+Tx2 
+	TxIn[Tx1.TxOuts[0]] (2) 은 (1)이전 의 트랜잭션 output 과 연결되어야 한다
+=> 이방법은 trnsacion의 Id를 검색
+	TxOuts[$5(me)] 
+Tx3
+ 	TxIns[Tx2.TxOuts[0]]
+	TxOuts[$3(you), $2(me)] => unspend transacion output * 2
+
+# transacion을 mempool 에 올리는 것을 제한
+
+함수가 receiver function 혹은 method 여야 하는지 아닌지 알려주는 규치?
+object -oriented programming 에서
+method란 클래스 내부에 존재하는 함수
+go 에서는 클래스는 없고
+구조체 struct 만 존재한다
+
+함수(function)이 구조체(struct) 를 
+변화시킨다면 그 함수는 메서드 여야 한다
+하지만 sruct 가 변화하지 않는다면
+그건 메서드가 아니다
