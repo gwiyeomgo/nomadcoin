@@ -346,3 +346,39 @@ go 에서는 클래스는 없고
 변화시킨다면 그 함수는 메서드 여야 한다
 하지만 sruct 가 변화하지 않는다면
 그건 메서드가 아니다
+
+#wallet
+1.gwiyeom 이 unspent transaction output 을 소유하고 있는지 확인
+2.gwiyeom 이 트랜잭션을 승인했는지 검증
+=>서명 signiture
+트랜잭션이 gwiyeom 에 의해서
+바랭하고 승인됐다는 것을 확인가능
+
+1, 서명 dignature ,검증 verification등
+어떻게 동작하는지 확인
+공개키 public key vs 비공개 private key 암호화
+2. 지감 유지 persistence 영속성
+지갑 파일로 저장,복구 방법
+3. 서명,증명을 구현
+
+
+# 서명된 메세지를 보내는 방법
+1. we have the message
+"message" -> hash (x) => "hashed_message"
+
+2.generate key pair
+KeyPair (privateK, publick) (save priv to a  file)
+// 비공개키를 파일로 저장
+//비공개키가 남아있지 않다면 (잃어버리면) 서명할 수 없다
+
+3. sign the hash
+("hashed_message"+privateK) -> "signature"
+비공개키는 노출되면 안된다
+노출된다면 누군가 나인척하고 서명할 수 있다
+
+비공개키로 서명하고
+공개키로 검증을 한다.
+4. verify
+("hashed_message"+"signiture"+publick) -> true/false
+세 가지의 조합으로
+해당 비공개키로 이 메세지가 서명되었는지 검증한다
