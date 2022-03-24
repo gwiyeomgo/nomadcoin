@@ -2,21 +2,76 @@ package wallet
 
 import (
 	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 	"crypto/x509"
-	"encoding/hex"
-	"fmt"
 	"github.com/gwiyeomgo/nomadcoin/utils"
-	"math/big"
+	"os"
 )
 
-const (
+/*const (
 	signature   string = "c48ce92a8d8ecc189cbf9c98d254cba1b3bab8f63885f7c2884923d672227d6110cefb3932053da20c490a8eb65ef1d8091016b256515f5429ea4d356a8927fa"
 	privateKey  string = "3077020101042062146a70b15e2477c5fbbaf22752806797169649d294b72a80dc18d7620f03f0a00a06082a8648ce3d030107a1440342000435fe9e9f64bcff2a3a0297f1b173143ce103e0649c854f2b43115e1ea849ff52a8bf333a454558824e3815e17bfabc5e7a28ae205a1b3b6fd9ef074c80221d66"
 	hashMessage string = "c33084feaa65adbbbebd0c9bf292a26ffc6dea97b170d88e501ab4865591aafd"
+)*/
+
+const (
+	fileName string = "gwiyeom.wallet"
 )
 
+//지갑 유지 persist
+//Singleton을 사용한다면 우리가 특정 변수를 어떻게 초기화할 지 우리가 정할 수 있다
+type wallet struct {
+	privateKey *ecdsa.PrivateKey
+}
+
+var w *wallet
+
+func createPriKey() *ecdsa.PrivateKey {
+	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	utils.HandleErr(err)
+	return privateKey
+}
+
+func persistKey(key *ecdsa.PrivateKey) {
+	bytes, err := x509.MarshalECPrivateKey(key)
+	utils.HandleErr(err)
+	//os package의 WriteFile 함수는 파일이름,데이터,0644(읽기쓰기허용)등 추가 생성
+	//err := 를 쓸 경우 위에있기 때문에 error 발생한다
+	//*하지만 val,err := fun() val2,err := fun() 이렇게 는 가능
+	// val,err := fun() _,err = fun() 불가능
+	// go 규칙때문 => 만약 val2가 있다면 err는 업데이트 된다는 의미
+
+	err = os.WriteFile(fileName, bytes, 0644)
+	utils.HandleErr(err)
+}
+func hasWalletFile() bool {
+	//os package ,파일 존재하지 않을 때 err 반환 or 파일정보 반환
+	_, err := os.Stat(fileName)
+	//이때 err 는 기존 err 와 다름 os 에서 IsExist 사용
+	//파일이 존재하지않거나 에러가 있을때 boolean 으로 에러 알려줌
+	// err 있다면(!true) =>  false 반환시킴
+	return !os.IsNotExist(err)
+}
+func Wallet() *wallet {
+	if w == nil {
+		//선언만 했던 w를 초기화한다
+		w = &wallet{}
+		// has a wallet already?
+		if hasWalletFile() {
+			//yes : restore form file
+		} else {
+			//no :create private key,save to file
+			key := createPriKey()
+			persistKey(key)
+			w.privateKey = key
+		}
+	}
+	return w
+}
+
 //* const 로 지정된 문자열들로 부터 복구 작업
-func Start() {
+/*func Start() {
 	//signature string => 2개 32 bytes slice -> slice 반으로 쪼개 big.Int 갑으로 변환
 	// 시그니처의 인코딩 박식이 16진수 형식인지 아닌지 확인
 	sigBytes, err := hex.DecodeString(signature)
@@ -52,7 +107,7 @@ func Start() {
 	//true 서명이 아직 유효하다는 것을 확인
 	ok := ecdsa.Verify(&private.PublicKey, hashBytes, &bigR, &bigS)
 	fmt.Println(ok)
-}
+}*/
 
 /*
 //* privateKey publickey signiture 생성 방법

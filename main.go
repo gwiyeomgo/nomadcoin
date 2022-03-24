@@ -23,5 +23,5 @@ import "github.com/gwiyeomgo/nomadcoin/wallet"
 //두 가지 mode,(html,rest) 실행시키는 하나의 command 를 만들자
 
 func main() {
-	wallet.Start()
+	wallet.Wallet()
 }
