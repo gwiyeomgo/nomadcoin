@@ -28,6 +28,35 @@ type mempool struct {
 //mempool 은 memory에만 존재한다 (blockchain의 경우는 db에 저장)
 var Mempool *mempool = &mempool{}
 
+func validate(tx *Tx) bool {
+	//transaction input 에 참조된
+	//transaction output 을 소유한 사람을 검증
+	//transaction을 만드려면 output 이 필요하다
+	//그 output은 다음 transactin을 만들 떄 input 이 된다
+	//근데 우린 우리가 그 output 을 소유하고 있다는 것을 증명해야 한다
+	valid := true
+	for _, txIn := range tx.TxIns {
+		//tansaction id 로 이전 트랜잭션 알 수 있따
+		preTx := FindTx(Blockchain(), txIn.TxID)
+		//이전 transaction 이 blockchain 에 없다면
+		if preTx == nil {
+			valid = false
+			break
+		}
+		//유효하다면 address = 이 transaction input 이 참조한
+		// transaction output 의 주소
+		address := preTx.TxOuts[txIn.Index].Address
+		//address = publick key 로 서명을 검증할 수있다
+		// 우리가 검증하고자 하는 것 = payload = transactin ID
+		valid = wallet.Verify(txIn.Signature, tx.ID, address)
+		if !valid {
+			break
+		}
+	}
+
+	return valid
+}
+
 func isOnMempool(uTxOut *UTxOut) bool {
 	exists := false
 	//2. label 사용
@@ -54,18 +83,31 @@ func (t *Tx) getId() {
 	t.ID = utils.Hash(t)
 }
 
+func (t *Tx) sign() {
+	//transaction 의 모든 transaction input 들에 서명을 저장한다
+	for _, txIn := range t.TxIns {
+		//우리가 갖고있는 Wallet 의 private key 로
+		//transactin id 에 서명한다
+		//그 서명을,우리가 서명한 id 를 갖는 트랜잭션의 transaction input 에 저장했다다
+		txIn.Signature = wallet.Sign(t.ID, wallet.Wallet())
+	}
+}
+
 //입력갑
 type TxIn struct {
-	TxID  string `json:"txId"`
-	Index int    `json:"index"` //TxIn의 ID 와 Index 는 transactin 이 이 input 을 생성한 output을 가지고 있는지 알려준다.
-	Owner string `json:"owner"`
+	TxID      string `json:"txId"`
+	Index     int    `json:"index"` //TxIn의 ID 와 Index 는 transactin 이 이 input 을 생성한 output을 가지고 있는지 알려준다.
+	Signature string `json:"signature"`
+	//Owner string `json:"owner"`
 	//	Amount int    `json:"amount"`
 }
 
 //출력값
+// address 가 바로 사람들이 너에게 코인을 보내는 곳
 type TxOut struct {
-	Owner  string `json:"owner"`
-	Amount int    `json:"amount"`
+	Address string `json:"address"` //public key 를 string 으로 한거
+	//Owner  string `json:"owner"`
+	Amount int `json:"amount"`
 }
 
 //사용하지 않은 outs
@@ -98,10 +140,13 @@ func makeCoinbaseTx(address string) *Tx {
 
 //transaction 을 생성해줗 makeTx
 
+var ErrorNoMoney = errors.New("not enough money")
+var ErrorNotValid = errors.New("Tx Invalid")
+
 func makeTx(from, to string, amount int) (*Tx, error) {
 	// gwiyeom 의 잔금이 amount 보다 금액이 적다면
 	if BalanceByAddress(Blockchain(), from) < amount {
-		return nil, errors.New("not enough money")
+		return nil, ErrorNoMoney
 	}
 	//amount 금액과 비교했을떄 total이 작거나 같을때까지 TxIns 에 담는다.
 	var txIns []*TxIn
@@ -148,6 +193,11 @@ func makeTx(from, to string, amount int) (*Tx, error) {
 		TxIns:     txIns,
 	}
 	tx.getId()
+	tx.sign()
+	valid := validate(tx)
+	if !valid {
+		return nil, ErrorNotValid
+	}
 	return tx, nil
 }
 func (m *mempool) AddTx(to string, amount int) error {

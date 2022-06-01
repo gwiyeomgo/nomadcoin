@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gwiyeomgo/nomadcoin/blockchain"
 	"github.com/gwiyeomgo/nomadcoin/utils"
+	"github.com/gwiyeomgo/nomadcoin/wallet"
 	"log"
 	"net/http"
 )
@@ -43,6 +44,10 @@ type balanceResponse struct {
 type addTxPayload struct {
 	To     string `json:"to"`
 	Amount int    `json:"amount"`
+}
+
+type myWalletResponse struct {
+	Address string `json:"address"`
 }
 
 func balance(rw http.ResponseWriter, r *http.Request) {
@@ -90,6 +95,12 @@ func status(rw http.ResponseWriter, r *http.Request) {
 
 func mempool(rw http.ResponseWriter, r *http.Request) {
 	utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Mempool.Txs))
+}
+func myWallet(rw http.ResponseWriter, r *http.Request) {
+	address := wallet.Wallet().Address
+	json.NewEncoder(rw).Encode(myWalletResponse{Address: address})
+	//아래처럼 즉석으로 쓸 수 있음
+	//json.NewEncoder(rw).Encode(struct{Address string `json:"address"`}{Address: address})
 }
 
 func transaction(rw http.ResponseWriter, r *http.Request) {
@@ -230,7 +241,8 @@ func Start(aPort int) {
 	//router.HandleFunc("/blocks/{height:[0-9]+}", block).Methods("GET")
 	//hexadecimal 을 a-f 와 숫자를 갖는 포맷
 	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET")
-	router.HandleFunc("/mempool", mempool)
+	router.HandleFunc("/mempool", mempool).Methods("GET")
+	router.HandleFunc("/wallet", myWallet).Methods("GET")
 	router.HandleFunc("/transaction", transaction).Methods("POST")
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))

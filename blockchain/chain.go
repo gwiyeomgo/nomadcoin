@@ -155,6 +155,26 @@ func Blocks(b *blockchain) []*Block {
 	return blocks
 }
 
+func Txs(b *blockchain) []*Tx {
+	var txs []*Tx
+	//blockchain 에 있는 모든 block 들에 대해서
+	//이 transaction 들을 txs 에 넣어줬다다
+	for _, block := range Blocks(b) {
+		txs = append(txs, block.Transaction...)
+	}
+	return txs
+}
+
+// transaction id 로
+func FindTx(b *blockchain, targetID string) *Tx {
+	for _, tx := range Txs(b) {
+		if tx.ID == targetID {
+			return tx
+		}
+	}
+	return nil
+}
+
 //전체 outs 는 필요 없고 unspnt trnasacion output 만 필요 아래 코드 지움
 // 어떤 사용자 ,혹은 주소가 블록체인에 자산을 얼마나 갖고 있는지 찾아내는 함수
 // 채굴자 주소가 소유중인 모든 출력값을 찾아라
@@ -196,14 +216,19 @@ func UTxOutsByAddress(b *blockchain, address string) []*UTxOut {
 	for _, block := range Blocks(b) {
 		for _, tx := range block.Transaction {
 			for _, input := range tx.TxIns {
-				if input.Owner == address {
+				//if input.Owner == address {
+				if input.Signature == "COINBASE" {
+					break
+				}
+				if FindTx(b, input.TxID).TxOuts[input.Index].Address == address {
 					creatorTxs[input.TxID] = true
 				}
 			}
 			//2.output 에 creatorTxs 안에 있는 트랜잭션 내에 없다는 거을 확인
 			for index, output := range tx.TxOuts {
 				//ok는 tx.ID key 값이 map 안에 있는지 없는지 확인해주는 값
-				if output.Owner == address {
+				//if output.Owner == address {
+				if output.Address == address {
 					if _, ok := creatorTxs[tx.ID]; !ok {
 						//추가하려는 unspent transaction output 이 mempool에 아직 없는지 확인
 						uTxOut := &UTxOut{

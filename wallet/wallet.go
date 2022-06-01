@@ -72,12 +72,30 @@ func restoreKey() (key *ecdsa.PrivateKey) {
 	return
 }
 
+/*func encodeBigInts(a,b []byte) string {
+	//[]byte 2개를 받아서 합쳐서 16진수 문자열로 encode 해준다
+	z := append(a, b...)
+	return fmt.Sprintf("%x", z)
+}*/
+func encodeBigInts(a, b []byte) string {
+	z := append(a, b...)
+	return fmt.Sprintf("%x", z)
+}
+
 //public key는 너의 주소
 //때문에 private key를 잏으면 public key 에 있는 돈도 잃게 된다.
 //key에서부터 주소를 만들어내는 함수
+/*func aFromK(key *ecdsa.PrivateKey) string {
+	//z := append(key.PublicKey.X.Bytes(), key.PublicKey.Y.Bytes()...)
+	//return fmt.Sprintf("%x", z)
+	return  encodeBigInts(key.PublicKey.X.Bytes(), key.PublicKey.Y.Bytes())
+
+}*/
+
 func aFromK(key *ecdsa.PrivateKey) string {
-	z := append(key.X.Bytes(), key.Y.Bytes()...)
-	return fmt.Sprintf("%s", z)
+	//z := append(key.X.Bytes(), key.Y.Bytes()...)
+	//return fmt.Sprintf("%x", z)
+	return encodeBigInts(key.X.Bytes(), key.Y.Bytes())
 }
 
 // * private key 로 서명하고,public key 로 검증
@@ -85,16 +103,26 @@ func aFromK(key *ecdsa.PrivateKey) string {
 //서명하는 function
 //우리는 아무것도 변화시키지 않으니까 리시버 함수로 안만들고 function으로
 //메세지에 서명한다는 건,메세지를 위한 서명을 생성한다는 뜻
-func sign(payload string, w *wallet) string {
+func Sign(payload string, w *wallet) string {
+	//plyload 를 bytes 로 바꿈
+	//우리가서명하고싶은 메세지(payload)와
+	//서명이 같은 형식을 가지는지 확인
 	payloadAsB, err := hex.DecodeString(payload)
-	utils.HandleErr(err)
+	utils.HandleErr(err) //여기서 err 가 나서 string 길이가 잘못됐다고 한다면
+	//payloadAsB Byte slice 에 서명
+	//뭔가가 서명하기 위해서는 private key 가 필요하고 서명하려는 뭔가가 필요
 	r, s, err := ecdsa.Sign(rand.Reader, w.privateKey, payloadAsB)
 	utils.HandleErr(err)
-	//r과 s를 합쳐서 16진수 문자열로 변경
-	signature := append(r.Bytes(), s.Bytes()...)
-	return fmt.Sprintf("%x", signature)
+	//r과 s를 합쳐서 16진수 문자열로 변경해서 return
+	//signature := append(r.Bytes(), s.Bytes()...)
+	//return fmt.Sprintf("%x", signature)
+	return encodeBigInts(r.Bytes(), s.Bytes())
 }
+
+//TODO DecodeString 을 너무 자주하니까 이걸 위한 function 을 만들자
+
 func restoreBigInts(signature string) (*big.Int, *big.Int, error) {
+	//string 을 decode 하고나서 그걸 byte로 바꾼다
 	// signature 를 r 과 s 로 바꿈
 	bytes, err := hex.DecodeString(signature)
 	if err != nil {
@@ -111,7 +139,7 @@ func restoreBigInts(signature string) (*big.Int, *big.Int, error) {
 }
 
 //검증
-func verify(signature, payload, address string) bool {
+func Verify(signature, payload, address string) bool {
 
 	r, s, err := restoreBigInts(signature)
 	utils.HandleErr(err)
@@ -138,7 +166,7 @@ func Wallet() *wallet {
 		//선언만 했던 w를 초기화한다
 		w = &wallet{}
 		// has a wallet already?
-		if hasWalletFile() {
+		if hasWalletFile() == true {
 			//yes : restore form file
 		} else {
 			//no :create private key,save to file

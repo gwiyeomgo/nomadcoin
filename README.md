@@ -375,10 +375,28 @@ KeyPair (privateK, publick) (save priv to a  file)
 ("hashed_message"+privateK) -> "signature"
 비공개키는 노출되면 안된다
 노출된다면 누군가 나인척하고 서명할 수 있다
-
+T
 비공개키로 서명하고
 공개키로 검증을 한다.
 4. verify
 ("hashed_message"+"signiture"+publick) -> true/false
 세 가지의 조합으로
 해당 비공개키로 이 메세지가 서명되었는지 검증한다
+
+
+# wallet 은 privare Key 와 address 를 가지고 있다
+public key 는 공유되고
+private key 는 바깥 세상의 그 누구와도 공유되지 않는다
+
+싱글톤 패턴으로 wallet 파일이 이미 존재하는지 확인하는데
+restoreKey 함수에서는
+파일을 읽고
+x.509 패키지를 사용해서 private key 를 복구
+wallet 없는경우는 createPrivKey 를 해서 privateKet를 생성한다
+
+privateKey 로 address 를 얻음
+16진수 문자열로 바꿔서 return 한것이 address
+
+//11.11 Transaction Signing
+
+
