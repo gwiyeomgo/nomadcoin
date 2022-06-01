@@ -123,7 +123,7 @@ func makeCoinbaseTx(address string) *Tx {
 		{"CoinBase", minerReward},
 	}*/
 	txIns := []*TxIn{
-		{"", -1, "CoinBase"},
+		{"", -1, "COINBASE"},
 	}
 	txOuts := []*TxOut{
 		{address, minerReward},

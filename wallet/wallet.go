@@ -168,6 +168,7 @@ func Wallet() *wallet {
 		// has a wallet already?
 		if hasWalletFile() == true {
 			//yes : restore form file
+			w.privateKey = restoreKey()
 		} else {
 			//no :create private key,save to file
 			key := createPriKey()

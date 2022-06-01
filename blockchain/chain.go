@@ -208,7 +208,7 @@ func (b blockchain) TxOutsByAddress(address string) []*TxOut {
 // 우린 그 트랜잭션의 output 으로 upsent transaction output 을 생성하지 않을거야
 //input 에서 사용되지 않은 output 을
 //func (b blockchain) UTxOutsByAddress(address string) []*UTxOut {
-func UTxOutsByAddress(b *blockchain, address string) []*UTxOut {
+/*func UTxOutsByAddress(b *blockchain, address string) []*UTxOut {
 	var uTxOuts []*UTxOut
 	creatorTxs := make(map[string]bool)
 	//1.전체 블록을 가져와 각각의 transaction 의 input 에서
@@ -245,6 +245,36 @@ func UTxOutsByAddress(b *blockchain, address string) []*UTxOut {
 		}
 	}
 	return uTxOuts
+}
+*/
+func UTxOutsByAddress(b *blockchain, address string) []*UTxOut {
+	var uTxOuts []*UTxOut
+	creatorTxs := make(map[string]bool)
+
+	for _, block := range Blocks(b) {
+		for _, tx := range block.Transaction {
+			for _, input := range tx.TxIns {
+				if input.Signature == "COINBASE" {
+					break
+				}
+				if FindTx(b, input.TxID).TxOuts[input.Index].Address == address {
+					creatorTxs[input.TxID] = true
+				}
+			}
+			for index, output := range tx.TxOuts {
+				if output.Address == address {
+					if _, ok := creatorTxs[tx.ID]; !ok {
+						uTxOut := &UTxOut{tx.ID, index, output.Amount}
+						if !isOnMempool(uTxOut) {
+							uTxOuts = append(uTxOuts, uTxOut)
+						}
+					}
+				}
+			}
+		}
+	}
+	return uTxOuts
+
 }
 
 //3.단하나의 주소만 보여주도록

@@ -1,29 +1,52 @@
+
+###
+GET http://localhost:3000/status
+Accept: application/json
+
+###1
+GET http://localhost:3000/blocks
+Accept: application/json
+
+
+
+###2 내지갑
+GET http://localhost:3000/wallet
+Accept: application/json
+
+
+
+###3 내잔고
+GET http://localhost:3000/balance/fbb5177f88ef936ee4bbe6f4fe0709cbdd36de92fce976be24fe477789fa02780c58e9f483b44d727ca38a494b37bdd6219f77e0db718e205684ad7423fc40fc
+
+###3,4 거래
 POST http://localhost:3000/transaction
-Content-Type: application/json
 
 {
   "to": "coco",
   "amount" : 50
 }
 
-###
-GET http://localhost:3000/status
-Accept: application/json
-
-###
-POST http://localhost:3000/blocks
-Content-Type: application/json
-
-
-###
+### 내 블록 보면 txOut 볼수있음
 GET http://localhost:3000/blocks
 Accept: application/json
 
-###
-##
-GET http://localhost:3000/
+
+###  내가 보낸거
+GET http://localhost:3000/mempool
+Accept: application/json
+
+### 채굴
+POST http://localhost:3000/blocks
+
+
+
 
 ###
 //GET http://localhost:3000/blocks/3
-GET http://localhost:3000/blocks/c4a1d77ecf0ee407f8ca42fced1f99fb8c09116381355df29646e63bddda595c
+//GET http://localhost:3000/blocks/c4a1d77ecf0ee407f8ca42fced1f99fb8c09116381355df29646e63bddda595c
 
+
+//GET http://localhost:3000/blocks/3
+
+### coco의 잔고
+GET http://localhost:3000/balance/coco
