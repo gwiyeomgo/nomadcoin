@@ -3,6 +3,7 @@ package blockchain
 import (
 	"errors"
 	"github.com/gwiyeomgo/nomadcoin/utils"
+	"github.com/gwiyeomgo/nomadcoin/wallet"
 	"time"
 )
 
@@ -150,7 +151,7 @@ func makeTx(from, to string, amount int) (*Tx, error) {
 	return tx, nil
 }
 func (m *mempool) AddTx(to string, amount int) error {
-	tx, err := makeTx("gwiyeom", to, amount)
+	tx, err := makeTx(wallet.Wallet().Address, to, amount)
 	if err != nil {
 		return err
 	}
@@ -161,7 +162,7 @@ func (m *mempool) AddTx(to string, amount int) error {
 
 //승인할 트랜잭션들을 가져오기
 func (m *mempool) TxToConfirm() []*Tx {
-	coinbase := makeCoinbaseTx("gwiyeom")
+	coinbase := makeCoinbaseTx(wallet.Wallet().Address)
 	txs := m.Txs
 	txs = append(txs, coinbase)
 	// mempool 에서 transaction 비워주기

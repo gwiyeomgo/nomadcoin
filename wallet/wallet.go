@@ -5,7 +5,10 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/x509"
+	"encoding/hex"
+	"fmt"
 	"github.com/gwiyeomgo/nomadcoin/utils"
+	"math/big"
 	"os"
 )
 
@@ -23,6 +26,7 @@ const (
 //Singleton을 사용한다면 우리가 특정 변수를 어떻게 초기화할 지 우리가 정할 수 있다
 type wallet struct {
 	privateKey *ecdsa.PrivateKey
+	Address    string
 }
 
 var w *wallet
@@ -53,6 +57,82 @@ func hasWalletFile() bool {
 	// err 있다면(!true) =>  false 반환시킴
 	return !os.IsNotExist(err)
 }
+
+// 파일-> key 복구
+//named return
+//function 이 어떤 variable 을 type 과 함께 반환할 건지 작성
+//func restoreKey() *ecdsa.PrivateKey {
+func restoreKey() (key *ecdsa.PrivateKey) {
+	//byte 조각들과 error 반환
+	keyAsBytes, err := os.ReadFile(fileName)
+	utils.HandleErr(err)
+	key, err = x509.ParseECPrivateKey(keyAsBytes)
+	utils.HandleErr(err)
+	//return key
+	return
+}
+
+//public key는 너의 주소
+//때문에 private key를 잏으면 public key 에 있는 돈도 잃게 된다.
+//key에서부터 주소를 만들어내는 함수
+func aFromK(key *ecdsa.PrivateKey) string {
+	z := append(key.X.Bytes(), key.Y.Bytes()...)
+	return fmt.Sprintf("%s", z)
+}
+
+// * private key 로 서명하고,public key 로 검증
+
+//서명하는 function
+//우리는 아무것도 변화시키지 않으니까 리시버 함수로 안만들고 function으로
+//메세지에 서명한다는 건,메세지를 위한 서명을 생성한다는 뜻
+func sign(payload string, w *wallet) string {
+	payloadAsB, err := hex.DecodeString(payload)
+	utils.HandleErr(err)
+	r, s, err := ecdsa.Sign(rand.Reader, w.privateKey, payloadAsB)
+	utils.HandleErr(err)
+	//r과 s를 합쳐서 16진수 문자열로 변경
+	signature := append(r.Bytes(), s.Bytes()...)
+	return fmt.Sprintf("%x", signature)
+}
+func restoreBigInts(signature string) (*big.Int, *big.Int, error) {
+	// signature 를 r 과 s 로 바꿈
+	bytes, err := hex.DecodeString(signature)
+	if err != nil {
+		// return 값이 big.Int 일때 nil 반환 할 수 없지만
+		// 대신 poinster 로 nil 반환할 수 있다
+		return nil, nil, err
+	}
+	firstHalfBytes := bytes[:len(bytes)/2]  //처음부터 중간
+	secondHalfBytes := bytes[len(bytes)/2:] //중간부터 끝
+	bigA, bigB := big.Int{}, big.Int{}
+	bigA.SetBytes(firstHalfBytes)
+	bigB.SetBytes(secondHalfBytes)
+	return &bigA, &bigB, nil
+}
+
+//검증
+func verify(signature, payload, address string) bool {
+
+	r, s, err := restoreBigInts(signature)
+	utils.HandleErr(err)
+	//payload 가 private key 로 서명되었는지 확인해야 한다
+	//address = public key
+	// private key 에서 public key 를 만들지만
+	// 대신 무언가를 검증하려고
+	//string을 public key 로 만들기도함
+	x, y, err := restoreBigInts(address)
+	publicKey := ecdsa.PublicKey{
+		Curve: elliptic.P256(),
+		X:     x,
+		Y:     y,
+	}
+	utils.HandleErr(err)
+
+	payloadBytes, err := hex.DecodeString(payload)
+	ok := ecdsa.Verify(&publicKey, payloadBytes, r, s)
+	return ok
+}
+
 func Wallet() *wallet {
 	if w == nil {
 		//선언만 했던 w를 초기화한다
@@ -66,6 +146,7 @@ func Wallet() *wallet {
 			persistKey(key)
 			w.privateKey = key
 		}
+		w.Address = aFromK(w.privateKey)
 	}
 	return w
 }
