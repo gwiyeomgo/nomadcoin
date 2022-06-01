@@ -2,7 +2,6 @@ package blockchain
 
 import (
 	"errors"
-	"fmt"
 	"github.com/gwiyeomgo/nomadcoin/db"
 	"github.com/gwiyeomgo/nomadcoin/utils"
 	"strings"
@@ -53,7 +52,7 @@ func (b *Block) mine() {
 		//blockAsString := fmt.Sprint(b)
 		//hash := fmt.Sprintf("%x", sha256.Sum256([]byte(blockAsString)))
 		hash := utils.Hash(b)
-		fmt.Printf("Target:%s\nHash:%s\nnonce:%s\n\n", target, hash, b.Nonce)
+		//fmt.Printf("Target:%s\nHash:%s\nnonce:%s\n\n", target, hash, b.Nonce)
 		if strings.HasPrefix(hash, target) {
 			b.Hash = hash
 			break

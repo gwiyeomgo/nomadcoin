@@ -399,4 +399,22 @@ privateKey 로 address 를 얻음
 
 //11.11 Transaction Signing
 
+#11.14
+2개의 transaction output 을 갖고 있음
+(TxOut1,TxOut2)
+
+Tx
+	TxIn[
+		(TxOut1)
+		(TxOUt2)
+	]
+	Sign : X
+	
+	transaction 을 만든사람이output 을 갖고있음
+	
+//private key 로 서명하고
+//public key 로 검증할 수 있다
+TxIn.Sign + TxOut1.Address = true /false
+
+
 
