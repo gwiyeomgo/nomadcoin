@@ -417,4 +417,18 @@ Tx
 TxIn.Sign + TxOut1.Address = true /false
 
 
+#12.1 
+고루틴은 함수고
+여러 함수를 동시에 실행시킬 수 있다
+성능 측면에서 개선이 많이 된다
 
+다수의 peer 에게 동시에 메세지를 보내고
+chaneel 을 통해서 고루틴을 보냄
+
+ex) 컴퓨터 cpu 의 여러 코어에서 실행하는 거
+
+예 => main function 에서 go 루틴으로 메세지를 보내고 싶거나
+go 루틴에서 main function 으로 메세지를 보내거나
+go 루틴과 통신하고 싶을 떄 channel 이 필요하다
+*** function 인 go루틴이 직접 접근 할 수 없다
+*** go 루틴은 반환값( return value) 를 가질 수 없다
