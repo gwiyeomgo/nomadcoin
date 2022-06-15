@@ -1,7 +1,7 @@
 # golang basic
 
 # Variables in Go
-```go
+```
 var name string = "test"
 // type 이 compiler 에게 name 은 항상 string 이라고 말해준다
 name1 :="test"
@@ -21,7 +21,7 @@ unit        :unsigned integer(= 음의 정수 아닌 양의 정수만 해당)
 
 # Functions
 argument
-```go
+```
 package main
 import (
 	"fmt"
@@ -432,3 +432,190 @@ go 루틴에서 main function 으로 메세지를 보내거나
 go 루틴과 통신하고 싶을 떄 channel 이 필요하다
 *** function 인 go루틴이 직접 접근 할 수 없다
 *** go 루틴은 반환값( return value) 를 가질 수 없다
+
+
+# 12.2 Channels
+
+go 루팅을 만들고 그 결과값을 필요로 할 때가 있다.
+function 의 결과를 `:=` 를 통해서 받을 수 있다.
+하지만
+`:=`를 돝애서 go 루틴의 결과를 받을 수 없다.
+go 루틴은 어떤 값도 return 하지 않는다.
+
+근데 우리는 go 루틴과 통신을 해야 하고,
+실제로 할 수 있는 방법이 있다.
+
+blockchain 에 동시에 연결된 peer 가ㅏ 많았으면 좋겠어.~~
+
+go 루틴으로 통신하려면 channel 이 필요하다
+channel 은 go 루틴과 대화를 주고 받거나,정보를 주고 받는 유일한 방법이다.
+
+
+ex) 
+채널은..
+
+```go
+c := make(chan int) // int 를 주고 받을 channel 생성
+go countToTen(c)
+//(2) 채널을 받음
+fmt.Println("blocking")
+//a := <-c 
+//fmt.Println("unblocking")
+//하나의 메세지를 기다리고 있다가 받음  = blocking 기다림
+//channel로 메세지가 들어오기 전까지 기다린다 
+//channel 을 통해 아무 것도 안들어오면,ㅇdeadlock 상태가 돼서 콘솔에 에러가 난다.
+//blocking operation  ==> webSocket 등..에서 다룰 내용
+//channel 에서 하나의 값을 받을 때까지 프로그앰이 block 될거다.
+for {
+	a := <-c 
+	fmt.Println(a)
+}
+```
+
+
+결과는?
+0
+
+기다린다.
+즉 10개를 모두 받기 위해서는
+10번 `<-c`를 써야
+
+
+```
+func countToTen(c chan int){
+	//`c chan int` 어떤 channel을 받을 
+
+	for i := range [10]int{}{
+		c <- i // (1)channel 에 값을 보내는 방밥
+		//여기 c는  출입구 , i를 출입구로 보냄
+		fmt.Printf("sending %d\n", i)
+		time.Sleep(1* time.Second)
+	}
+}
+
+```
+
+
+# go 루틴이 끝나는데 `<-` 를 호출하면..
+
+메세지를 계속 기다릴꺼임
+
+all goroutines are asleep  - ㅇdeadlock!
+
+
+#12.3 Read, Receive and Close
+channel을 닫는 방법?
+
+```
+func countToTen(c chan int){
+	for i := range [10]int{}{
+		time.Sleep(1 *time.Second)
+		fmt.Printf("sending %d\n", i)
+		c <- i 
+		//channel 로 값을 보내면
+	}
+}
+
+func receive(c chan int){
+	
+	for {
+		a := <- c
+		fmt.Printf("received %d\n",a)
+	}
+}
+
+func main(){
+	c := make(chan int)
+	go countToTen(c)
+	receive(c)
+}
+```
+
+
+
+```
+
+sending 0
+received 0
+sending 1
+received 1
+sending 2
+received 2
+sending 3
+received 3
+sending 4
+received 4
+sending 5
+received 5
+sending 6
+received 6
+sending 7
+received 7
+sending 8
+received 8
+sending 9
+received 9
+fatal error: all goroutines are asleep - deadlock!
+
+goroutine 1 [chan receive]:
+main.receive(0x415d45)
+    /home/runner/channel/main.go:20 +0x30
+main.main()
+    /home/runner/channel/main.go:28 +0x79
+exit status 2
+exit status 1
+
+```
+
+https://replit.com/@gwiyeomgo/channel#main.go
+
+```
+func countToTen(c chan int){
+	for i := range [10]int{}{
+		time.Sleep(1 *time.Second)
+		fmt.Printf("sending %d\n", i)
+		c <- i 
+		//channel 로 값을 보내면
+	}
+  close(c) //채널을 닫아준다.
+}
+
+func receive(c chan int){
+	
+	for {
+    //채널이 닫혔는지 알아야 할 필요가 있다
+      
+		//a := <- c
+    // 그래서 ok 를 써줘서 채널이 닫혔는지 확인가능
+    a,ok := <-c // 여기 channel로 부터 읽는 것은 blocking operation 이다.
+    //이말은 channel로 부터 무언가를 받기 전까지 go 언어가 더 진행하지 않는다 (기다림)
+    
+    if !ok { //ok == false
+      fmt.Println("we are done")
+      break
+    }
+    fmt.Printf("received %d\n",a)
+	}
+}
+
+```
+
+
+화살표는 정보가 가는 방향
+
+```
+//func receive (c chan int){
+//receive function은 오직 channel 에서 받기만을 원한다.
+이럴떄
+func receive (c <- chan int){ //받기전용 channel 이라 표시해줌
+//이 코드에서
+//c <- 0 과 같이 0을 채널로 보낸다고 쓰면 에러가 발생한다.
+// invalid  operation: cannot send to receive-only
+
+...
+```
+
+```
+func countToTen(c chan <- int){ // 보내기전용(send-only)로 명시 가능
+...
+```
