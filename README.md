@@ -437,7 +437,7 @@ channel 은 go 루틴과 대화를 주고 받거나,정보를 주고 받는 유�
 ex) 
 채널은..
 
-```
+```go
 c := make(chan int) // int 를 주고 받을 channel 생성
 go countToTen(c)
 //(2) 채널을 받음
@@ -453,8 +453,8 @@ for {
 	a := <-c 
 	fmt.Println(a)
 }
-
 ```
+
 
 결과는?
 0
@@ -464,7 +464,7 @@ for {
 10번 `<-c`를 써야
 
 
-```
+```go
 func countToTen(c chan int){
 	//`c chan int` 어떤 channel을 받을 
 
@@ -489,7 +489,7 @@ all goroutines are asleep  - ㅇdeadlock!
 #12.3 Read, Receive and Close
 channel을 닫는 방법?
 
-```
+```go
 func countToTen(c chan int){
 	for i := range [10]int{}{
 		time.Sleep(1 *time.Second)
@@ -513,6 +513,8 @@ func main(){
 	receive(c)
 }
 ```
+
+
 
 ```
 
@@ -551,7 +553,6 @@ exit status 1
 https://replit.com/@gwiyeomgo/channel#main.go
 
 ```
-
 func countToTen(c chan int){
 	for i := range [10]int{}{
 		time.Sleep(1 *time.Second)
