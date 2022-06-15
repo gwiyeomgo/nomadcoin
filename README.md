@@ -417,4 +417,71 @@ Tx
 TxIn.Sign + TxOut1.Address = true /false
 
 
+# 12.2 Channels
+
+go 루팅을 만들고 그 결과값을 필요로 할 때가 있다.
+function 의 결과를 `:=` 를 통해서 받을 수 있다.
+하지만
+`:=`를 돝애서 go 루틴의 결과를 받을 수 없다.
+go 루틴은 어떤 값도 return 하지 않는다.
+
+근데 우리는 go 루틴과 통신을 해야 하고,
+실제로 할 수 있는 방법이 있다.
+
+blockchain 에 동시에 연결된 peer 가ㅏ 많았으면 좋겠어.~~
+
+go 루틴으로 통신하려면 channel 이 필요하다
+channel 은 go 루틴과 대화를 주고 받거나,정보를 주고 받는 유일한 방법이다.
+
+
+ex) 
+채널은..
+
+```
+c := make(chan int) // int 를 주고 받을 channel 생성
+go countToTen(c)
+//(2) 채널을 받음
+fmt.Println("blocking")
+//a := <-c 
+//fmt.Println("unblocking")
+//하나의 메세지를 기다리고 있다가 받음  = blocking 기다림
+//channel로 메세지가 들어오기 전까지 기다린다 
+//channel 을 통해 아무 것도 안들어오면,ㅇdeadlock 상태가 돼서 콘솔에 에러가 난다.
+//blocking operation  ==> webSocket 등..에서 다룰 내용
+//channel 에서 하나의 값을 받을 때까지 프로그앰이 block 될거다.
+for {
+	a := <-c 
+	fmt.Println(a)
+}
+
+```
+
+결과는?
+0
+
+기다린다.
+즉 10개를 모두 받기 위해서는 
+10번 `<-c`를 써야
+
+
+```
+func countToTen(c chan int){
+	//`c chan int` 어떤 channel을 받을 
+
+	for i := range [10]int{}{
+		c <- i // (1)channel 에 값을 보내는 방밥
+		//여기 c는  출입구 , i를 출입구로 보냄
+		fmt.Printf("sending %d\n", i)
+		time.Sleep(1* time.Second)
+	}
+}
+
+```
+
+
+# go 루틴이 끝나는데 `<-` 를 호출하면..
+
+메세지를 계속 기다릴꺼임
+
+all goroutines are asleep  - ㅇdeadlock!
 
