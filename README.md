@@ -619,3 +619,23 @@ func receive (c <- chan int){ //받기전용 channel 이라 표시해줌
 func countToTen(c chan <- int){ // 보내기전용(send-only)로 명시 가능
 ...
 ```
+
+
+#12.4 Buffered Channels vs unbuffered channel
+
+?버퍼는 데이터를 한 곳에서 다른 한 곳으로 전송하는 동안 일시적으로 그 데이터를 보관하는 메모리의 영역이다. ?
+
+기본적인 channel 들은  unbuffered channel 이다. 
+
+channel 에서 받는 것도 blocking 이지만 보내는 것도 blocking 이
+보냈는데 아무도 읽지 못한다면,누군가가 읽을 때까지 block 돼있을거다.
+
+##  unbuffered channel 
+
+ sent -> sending -> received -> sent...
+ send 하는 부분을 block 하게 된다.
+
+하나의 메세지를 send 한다
+
+
+ex) 가끔 1~10까지 채널로 보낼 때 , 5를 보낸 이후에만 block 하고 싶다
