@@ -638,4 +638,55 @@ channel 에서 받는 것도 blocking 이지만 보내는 것도 blocking 이
 하나의 메세지를 send 한다
 
 
+#12.4 추가 
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func send(c chan <- int){
+	for i := range [10]int{}{
+		fmt.Printf(">> sending %d\n",i)
+		c <- i
+    //누가 channel 에서 일기 전까지 sent 할 수 없다
+		fmt.Printf(">> snet %d\n",i)
+	}
+   close(c)
+}
+
+func receive (c <-chan int){
+  for {
+    time.Sleep(10 * time.Second)
+    a, ok :=  <- c
+    if !ok {
+      fmt.Println("we are done")
+      break
+    }
+    fmt.Printf("|| received %d\n",a)
+  }
+}
+
+func main() {
+	//c := make(chan int)
+  c := make(chan int, 10)
+  //sender function 이 모든 숫자에 대해 block 하는게 아니라
+  //숫자 5개가 올 때마다 block 한다
+  //buffer Channel 을 만들 때 해준건
+  //channel에 더 많은 메세지를 위한 공간을 만든 것임 => queue 를 만든것과 같음
+  // -> [1] <- 1을 누가 읽기를 기다림
+  ///buffer channel 을 1,2,3,4,5 를 가능한 빨리 보낼 수 있게 허락
+  // -> [1,2,3,4,5] <-
+  // channel 이 꽉차면 하나의 숫자를 받으면 function 이 공간이 난 것을 알아서,하나를 더 보내준다.
+  //buffer Channel 은 다시 channel이 꽉 차기 전까지 block 하지 않는 channel 을 뜻한다.
+  //기존 channel 은 block 당하는거 없이 최대 1개 항목을 보낼 수 있다.
+  //buffer Channel은 block 당하는거 없이 최대 10개 항목을 보낼 수 있다.
+  //buffer 는 채울 수 있는 공간
+  go send(c)
+  receive(c)
+  
+}
+
+
 ex) 가끔 1~10까지 채널로 보낼 때 , 5를 보낸 이후에만 block 하고 싶다
