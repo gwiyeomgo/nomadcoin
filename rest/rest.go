@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/gwiyeomgo/nomadcoin/blockchain"
+	"github.com/gwiyeomgo/nomadcoin/p2p"
 	"github.com/gwiyeomgo/nomadcoin/utils"
 	"github.com/gwiyeomgo/nomadcoin/wallet"
 	"log"
@@ -161,6 +162,11 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Method:      "POST",
 			Description: "ADD Transaction to Mempool",
 		},
+		{
+			URL:         url("/ws"),
+			Method:      "GET",
+			Description: "Upgrade to WebSockets",
+		},
 	}
 	//data 를 json 으로 변경
 	//Marshal 은 interface => json으로 변환
@@ -218,6 +224,13 @@ func jsonContentTypeMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func loggerMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, request *http.Request) {
+		fmt.Println(request.URL)
+		next.ServeHTTP(rw, request)
+	})
+}
+
 func Start(aPort int) {
 	//go get -u github.com/gorilla/mux 을 통해 gorilla mux 사용
 	router := mux.NewRouter()
@@ -234,7 +247,7 @@ func Start(aPort int) {
 	//middleware function
 	//마지막 목적지 전에 호출되는 녀석
 	//(1)호출
-	router.Use(jsonContentTypeMiddleware)
+	router.Use(jsonContentTypeMiddleware, loggerMiddleware)
 	//(3) HandleFunc 호출
 	router.HandleFunc("/", documentation).Methods("GET")
 	router.HandleFunc("/status", status).Methods("GET")
@@ -245,6 +258,7 @@ func Start(aPort int) {
 	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET")
 	router.HandleFunc("/mempool", mempool).Methods("GET")
 	router.HandleFunc("/wallet", myWallet).Methods("GET")
+	router.HandleFunc("/ws", p2p.Upgrade).Methods("GET")
 	router.HandleFunc("/transaction", transaction).Methods("POST")
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))
