@@ -690,3 +690,36 @@ func main() {
 
 
 ex) 가끔 1~10까지 채널로 보낼 때 , 5를 보낸 이후에만 block 하고 싶다
+
+
+webSocket 을 사용한 채팅앱
+
+목표는 channel 을 써서 webSocket 이 왜 필요한지 알아보자
+
+webSocket은 프로토콜이다 
+http 랑 비슷
+
+차이점은
+http 는 stateless 이다.
+state 가 없다
+
+WS 는 stateful이다.
+
+request 보내고 응답 받은 후 
+서버와 나 사이에 연결된 메모리가 없다.
+요청보내고 응답받으면 끝이다.
+
+webSocket은 alive connection 연결이 지속된다.
+ex) wi-fi 
+서로가 주고 받을 수 있는
+bi-directional(양방향) connection 을 만들 수 있다.
+
+http 는 무언가를 요청하고 원하는 걸 받는다
+webSocket은 요청보낸 후 서로 연결된다.
+양방향으로 둘 다 보내고 받을 수 있다.
+
+* 모든 node 에 대해 alive,bi-directional 하게 만들기
+* http connection 을 webSocket connection 으로 변환하기
+
+서버에 request 를 보내고
+서버에게 지금 연결을 webSocket 연결로 upgrade 하자고 한다
