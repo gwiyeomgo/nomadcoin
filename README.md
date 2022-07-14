@@ -72,7 +72,7 @@ https://go.dev/tour/methods/17
 interface 는 함수의 청사진과 같다
 Stringer 라는 interface 는 String 이라는
 하나의 method 만 구현시킨다
-대문자로 시작하며 ,매개변수 x, string o run -race 을 return
+대문자로 시작하며 ,매개변수 x, string 을 return
 
 fmt package 로 출력 할때 
 어떻게 보여줄지 조절할 수 있다
@@ -619,6 +619,110 @@ func receive (c <- chan int){ //받기전용 channel 이라 표시해줌
 func countToTen(c chan <- int){ // 보내기전용(send-only)로 명시 가능
 ...
 ```
+
+
+#12.4 Buffered Channels vs unbuffered channel
+
+?버퍼는 데이터를 한 곳에서 다른 한 곳으로 전송하는 동안 일시적으로 그 데이터를 보관하는 메모리의 영역이다. ?
+
+기본적인 channel 들은  unbuffered channel 이다. 
+
+channel 에서 받는 것도 blocking 이지만 보내는 것도 blocking 이
+보냈는데 아무도 읽지 못한다면,누군가가 읽을 때까지 block 돼있을거다.
+
+##  unbuffered channel 
+
+ sent -> sending -> received -> sent...
+ send 하는 부분을 block 하게 된다.
+
+하나의 메세지를 send 한다
+
+
+#12.4 추가 
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func send(c chan <- int){
+	for i := range [10]int{}{
+		fmt.Printf(">> sending %d\n",i)
+		c <- i
+    //누가 channel 에서 일기 전까지 sent 할 수 없다
+		fmt.Printf(">> snet %d\n",i)
+	}
+   close(c)
+}
+
+func receive (c <-chan int){
+  for {
+    time.Sleep(10 * time.Second)
+    a, ok :=  <- c
+    if !ok {
+      fmt.Println("we are done")
+      break
+    }
+    fmt.Printf("|| received %d\n",a)
+  }
+}
+
+func main() {
+	//c := make(chan int)
+  c := make(chan int, 10)
+  //sender function 이 모든 숫자에 대해 block 하는게 아니라
+  //숫자 5개가 올 때마다 block 한다
+  //buffer Channel 을 만들 때 해준건
+  //channel에 더 많은 메세지를 위한 공간을 만든 것임 => queue 를 만든것과 같음
+  // -> [1] <- 1을 누가 읽기를 기다림
+  ///buffer channel 을 1,2,3,4,5 를 가능한 빨리 보낼 수 있게 허락
+  // -> [1,2,3,4,5] <-
+  // channel 이 꽉차면 하나의 숫자를 받으면 function 이 공간이 난 것을 알아서,하나를 더 보내준다.
+  //buffer Channel 은 다시 channel이 꽉 차기 전까지 block 하지 않는 channel 을 뜻한다.
+  //기존 channel 은 block 당하는거 없이 최대 1개 항목을 보낼 수 있다.
+  //buffer Channel은 block 당하는거 없이 최대 10개 항목을 보낼 수 있다.
+  //buffer 는 채울 수 있는 공간
+  go send(c)
+  receive(c)
+  
+}
+
+
+ex) 가끔 1~10까지 채널로 보낼 때 , 5를 보낸 이후에만 block 하고 싶다
+
+
+webSocket 을 사용한 채팅앱
+
+목표는 channel 을 써서 webSocket 이 왜 필요한지 알아보자
+
+webSocket은 프로토콜이다 
+http 랑 비슷
+
+차이점은
+http 는 stateless 이다.
+state 가 없다
+
+WS 는 stateful이다.
+
+request 보내고 응답 받은 후 
+서버와 나 사이에 연결된 메모리가 없다.
+요청보내고 응답받으면 끝이다.
+
+webSocket은 alive connection 연결이 지속된다.
+ex) wi-fi 
+서로가 주고 받을 수 있는
+bi-directional(양방향) connection 을 만들 수 있다.
+
+http 는 무언가를 요청하고 원하는 걸 받는다
+webSocket은 요청보낸 후 서로 연결된다.
+양방향으로 둘 다 보내고 받을 수 있다.
+
+* 모든 node 에 대해 alive,bi-directional 하게 만들기
+* http connection 을 webSocket connection 으로 변환하기
+
+서버에 request 를 보내고
+서버에게 지금 연결을 webSocket 연결로 upgrade 하자고 한다
 
 #12.7
 메세지를 서버에 보내면,
