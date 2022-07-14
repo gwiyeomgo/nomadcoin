@@ -72,7 +72,7 @@ https://go.dev/tour/methods/17
 interface 는 함수의 청사진과 같다
 Stringer 라는 interface 는 String 이라는
 하나의 method 만 구현시킨다
-대문자로 시작하며 ,매개변수 x, string 을 return
+대문자로 시작하며 ,매개변수 x, string o run -race 을 return
 
 fmt package 로 출력 할때 
 어떻게 보여줄지 조절할 수 있다
@@ -619,3 +619,11 @@ func receive (c <- chan int){ //받기전용 channel 이라 표시해줌
 func countToTen(c chan <- int){ // 보내기전용(send-only)로 명시 가능
 ...
 ```
+
+#12.7
+메세지를 서버에 보내면,
+사실 서버에 메세지를 보내고 싶은게 아니다
+서버에 연결된 다른 모든 유저가 내 메세지를 봤으면 한다
+
+메세지를 보낸 브라우저에서만
+메세지가 나타날텐데 그걸 바꾸자

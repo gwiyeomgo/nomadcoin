@@ -1,17 +1,17 @@
 package main
 
 import (
-	"fmt"
-	"time"
+	"github.com/gwiyeomgo/nomadcoin/cli"
+	"github.com/gwiyeomgo/nomadcoin/db"
 )
 
 /*func main() {
 	//port 2개 실행시 go 사용
 	rest.Start(3000)
 	//go explorer.Start(4000)
-}*/
-
-/*func main() {
+}
+*/
+func main() {
 	defer db.Close()
 	//CLI 는 유저에게 flag 를 입력하도록 요청
 	//blockchain.Blockchain()
@@ -20,7 +20,7 @@ import (
 	//		blockchain.Blockchain().AddBlock("Second")
 	//		blockchain.Blockchain().AddBlock("Third")
 }
-*/
+
 //과제?
 //두 가지 mode 를 동시에 구동시키는 command나 flag 를 추가하기?
 //두 가지 mode,(html,rest) 실행시키는 하나의 command 를 만들자
@@ -42,6 +42,7 @@ func main() {
 // go 루틴 밖에서 값을 얻는 방법?
 // * go 루틴 함수는 return 불가
 
+/*
 func countToTen() {
 	for i := range [10]int{} {
 		fmt.Println(i)
@@ -63,3 +64,5 @@ func main() {
 
 	}
 }
+
+*/

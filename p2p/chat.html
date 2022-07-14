@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <form>
+        <input placeholder="talk" required/>
+    </form>
+    <span></span>
+<script>
+    //JS 는 webSocket 이랑 연결에 있어서 native 한 방법이 있다
+    /* const socket = new WebSocket("ws://localhost:3000/ws")
+       socket.addEventListener("close", () => console.log("closed"))
+        setTimeout(() => {
+            socket.send("hello darling! js < go")
+        }, 5000)
+        setTimeout(() => {
+            socket.send("hello again")
+        }, 10000)
+        setTimeout(() => {
+            socket.send("펭하 !!!!!!!!!!!!")
+        }, 20000)*/
+    const form = document.querySelector("form")
+    const input = document.querySelector("input")
+    const span = document.querySelector("span")
+    const socket = new WebSocket("ws://localhost:3000/ws")
+    socket.addEventListener("close",() => console.log("closed"))
+    socket.addEventListener("message",(e) => {
+        span.innerHTML = span.innerHTML + `\n${e.data}`
+    })
+    form.addEventListener("submit",(e) => {
+        //enter 하면 보내짐
+        e.preventDefault();
+        socket.send(input.value);
+        input.value = "";
+    })
+</script>
+</body>
+</html>
