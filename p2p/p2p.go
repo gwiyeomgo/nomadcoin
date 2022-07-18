@@ -1,11 +1,9 @@
 package p2p
 
 import (
-	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/gwiyeomgo/nomadcoin/utils"
 	"net/http"
-	"time"
 )
 
 /*
@@ -20,9 +18,11 @@ http 는 stateless 이고 ws 는 stateful 이다
 
 
 */
+var conns []*websocket.Conn
 var upgrader = websocket.Upgrader{}
 
 func Upgreade(rw http.ResponseWriter, r *http.Request) {
+	//해당 function 에서는 upgrade 역할만 한다
 
 	//equest origin not allowed by Upgrader.CheckOrigin
 	//아무나 너의 서버에 접속할 수 있게 하면 안되기 때문에... 에러 발생
@@ -57,10 +57,11 @@ func Upgreade(rw http.ResponseWriter, r *http.Request) {
 		utils.HandleErr(err)
 		fmt.Printf("%s",p)*/
 
-	//TODO 나중에 고루틴넣어서 해봄
 	//_, p ,err := conn.ReadMessage() 이 block 하기 때문에
 	// for 문 밑에 conn.WriteMessge() 해도 실행 X
 	// 2개 function 실행을 위해서 go 루틴 사영영
+
+	/* 같은 브라우저에서 메세지 공유
 	for {
 		//fmt.Println("Waiting message...")
 		_, p, err := conn.ReadMessage()
@@ -79,7 +80,31 @@ func Upgreade(rw http.ResponseWriter, r *http.Request) {
 		message := fmt.Sprintf("New message: %s", p)
 		utils.HandleErr(conn.WriteMessage(websocket.TextMessage, []byte(message)))
 
-	}
+	}*/
+	//Upgrade 는 go 루틴으로 돌아감 => 덕북에 다른 브라우저로 전송 가능
+
+	//다른 브라우저로 메세지 전송송
+	//연결들을 배열에  추가
+	//conns = append(conns,conn)
+	/*
+		for {
+			//* 중요 : read 할 때 block 했고, 메세지 보냄
+			_,p, err := conn.ReadMessage()
+			if err != nil {
+				break
+			}
+			//브라우저가 다를 때 메세지 전송하도록 코딩
+			//문제는 새로고침하면 connection 이 끊긴다
+			//conns 에 여전히 연결이 남아있기 때문에
+			for _, aConn := range conns {
+				//aConn 이 닫혔는지 확인?
+				if aConn != conn {
+					utils.HandleErr(aConn.WriteMessage(websocket.TextMessage, p))
+				}
+			}
+		}*/
+	//읽기 , 쓰기 용도에 따라 분리
+	//특정 메세지를 1개 특정 브라우저로 보내고 싶다
 
 	//conn.WriteMessage(websocket.TextMessage)
 }
