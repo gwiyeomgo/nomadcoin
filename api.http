@@ -50,3 +50,12 @@ POST http://localhost:3000/blocks
 
 ### coco의 잔고
 GET http://localhost:3000/balance/coco
+
+
+### peers
+POST http://localhost:4000/pears
+
+{
+"address":"127.0.0.1",
+"port":"3000"
+}

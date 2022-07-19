@@ -51,6 +51,10 @@ type myWalletResponse struct {
 	Address string `json:"address"`
 }
 
+type addPeerPayload struct {
+	address, port string
+}
+
 func balance(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	address := vars["address"]
@@ -117,6 +121,17 @@ func transaction(rw http.ResponseWriter, r *http.Request) {
 	rw.WriteHeader(http.StatusCreated)
 }
 
+func peers(rw http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "POST":
+		//API 에서 온 json 을 go 언어로 variable 바꿀 준비
+		var payload addPeerPayload
+		json.NewDecoder(r.Body).Decode(&payload)
+		p2p.AddPeer(payload.address, payload.port)
+		rw.WriteHeader(http.StatusOK)
+	}
+}
+
 func documentation(rw http.ResponseWriter, r *http.Request) {
 	// data 는 Go의 세계에 있는 slice
 	//struct 의 slice
@@ -161,10 +176,16 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			URL:         url("/transaction"),
 			Method:      "POST",
 			Description: "ADD Transaction to Mempool",
-		}, {
+		},
+		{
 			URL:         url("/ws"),
 			Method:      "GET",
 			Description: "Upgrade to Web Sockets",
+		},
+		{
+			URL:         url("/peers"),
+			Method:      "POST",
+			Description: "Connect to peer",
 		},
 	}
 	//data 를 json 으로 변경
@@ -260,6 +281,7 @@ func Start(aPort int) {
 	router.HandleFunc("/wallet", myWallet).Methods("GET")
 	router.HandleFunc("/transaction", transaction).Methods("POST")
 	router.HandleFunc("/ws", p2p.Upgreade).Methods("GET")
+	router.HandleFunc("/peers", peers).Methods("POST")
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))
 }

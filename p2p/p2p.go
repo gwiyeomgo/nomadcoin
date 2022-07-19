@@ -1,6 +1,7 @@
 package p2p
 
 import (
+	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/gwiyeomgo/nomadcoin/utils"
 	"net/http"
@@ -22,6 +23,7 @@ var conns []*websocket.Conn
 var upgrader = websocket.Upgrader{}
 
 func Upgreade(rw http.ResponseWriter, r *http.Request) {
+	//port 3000d이 port 4000 에서 온 request 를 will be upgrade
 	//해당 function 에서는 upgrade 역할만 한다
 
 	//equest origin not allowed by Upgrader.CheckOrigin
@@ -40,7 +42,9 @@ func Upgreade(rw http.ResponseWriter, r *http.Request) {
 	//2. upgrader.Upgrade()
 	//http connection 을 WS connection 으로 upgreade 했음
 	conn, err := upgrader.Upgrade(rw, r, nil)
-	utils.HandleErr(err)
+	// conn 은 port 3000  과 4000 을 이여준다
+	conn.
+		utils.HandleErr(err)
 	/*	fmt.Println("Waiting 4 message...")
 		//3. coonn 으로 WriteMessage, WriteJSON  또는 ReadMessage
 		_, p ,err := conn.ReadMessage()
@@ -107,4 +111,17 @@ func Upgreade(rw http.ResponseWriter, r *http.Request) {
 	//특정 메세지를 1개 특정 브라우저로 보내고 싶다
 
 	//conn.WriteMessage(websocket.TextMessage)
+}
+
+func AddPeer(address, port string) {
+	//go에서 connection 하기
+	//이 URL 을 call 하면 새로운 connection 을 만든다
+	//websocket 서버랑 연결하려고 할 때 upgrade 하기전 앞으로 도착할 request 를 체크할 수 있다
+	//만약 websocket 으로 인증하고 싶다면 requestHeader 에 token 을 보낸다
+
+	// 여기는 port:4000 이고 port:3000 으로 연결할길원함 (dial)
+	conn, _, err := websocket.DefaultDialer.Dial(fmt.Sprintf("ws://%s:%s/ws", address, port), nil)
+
+	utils.HandleErr(err)
+
 }
