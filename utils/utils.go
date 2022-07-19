@@ -6,6 +6,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"log"
+	"strings"
 )
 
 func HandleErr(err error) {
@@ -38,4 +39,15 @@ func Hash(i interface{}) string {
 	s := fmt.Sprintf("%v", i)
 	hash := sha256.Sum256([]byte(s))
 	return fmt.Sprintf("%x", hash)
+}
+
+//문자열을 분리하는 함수
+func Splitter(s string, sep string, i int) string {
+	//슬라이스 길이보다 큰 인덱스를 요청했나?
+	//slice -1 의 길이가 우리가 원하는 인데스보다 작은지 확인
+	r := strings.Split(s, sep)
+	if len(r)-1 < i {
+		return ""
+	}
+	return r[i]
 }

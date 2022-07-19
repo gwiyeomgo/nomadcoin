@@ -26,12 +26,27 @@ func Upgreade(rw http.ResponseWriter, r *http.Request) {
 	//port 3000d이 port 4000 에서 온 request 를 will be upgrade
 	//해당 function 에서는 upgrade 역할만 한다
 
+	// 원격 주소를 사용하면 서버가 요처을 보낸 네트워크 주소를 기억할 수 있다.
+	// RemoteAddr allows HTTP servers and other software to record
+	// the network address that sent the request,
+	//fmt.Println(r.RemoteAddr)
+	//문제는 127.0.0.1:62279 원격주소는 저장되지만..
+	//:62279 가 아닌 peer 에서 열려 있는 포트를 저장하고 싶다
+	// r.RemoteAddr 를 :  로 쪼갠다
+	//result := strings.Split(r.RemoteAddr,":")
+	ip := utils.Splitter(r.RemoteAddr, ":", 0)
+	//initPeer(conn,result[0],"xx")
+	//openPort
+	//request query 받아오기
+	openPort := r.URL.Query().Get("openPort")
+	//openPort 가 "" 인 경우
+
 	//equest origin not allowed by Upgrader.CheckOrigin
 	//아무나 너의 서버에 접속할 수 있게 하면 안되기 때문에... 에러 발생
 	//CheckOrigin 은 유요한 webSocket 연결인지
 	// authenticate 인증할 때 사용
 	upgrader.CheckOrigin = func(r *http.Request) bool {
-		return true
+		return openPort != "" && ip != ""
 	}
 
 	//websocket pacakge 가 있지만 일부기능 동작 X
@@ -43,8 +58,19 @@ func Upgreade(rw http.ResponseWriter, r *http.Request) {
 	//http connection 을 WS connection 으로 upgreade 했음
 	conn, err := upgrader.Upgrade(rw, r, nil)
 	// conn 은 port 3000  과 4000 을 이여준다
-	conn.
-		utils.HandleErr(err)
+	//adreess 와 port 정보 어떻게 알지?
+	//initPeer(conn,"xx","xx")
+
+	// 누구와 연결되어 있고 그들의 열린 포트가 무엇인지 알 수 있다
+	//앞으로는 우리와 연결된 peers 목록과
+	//열린 포트가 무엇인지 저장해야 한다
+	// IP 리스트와 peers 의 오픈포트를 저장하는 이유는
+	//새 node 가 들어오면,
+	//ex 2000 포트가 들어오면 3000 에 연결하고
+	//3000 번 포트가 연결되어있는 모든 peers 를 보게 될거고
+	//3000번 포트가 4000번 포트에 업그레이드 요청을 보낼 수 있따
+	initPeer(conn, ip, openPort)
+	utils.HandleErr(err)
 	/*	fmt.Println("Waiting 4 message...")
 		//3. coonn 으로 WriteMessage, WriteJSON  또는 ReadMessage
 		_, p ,err := conn.ReadMessage()
@@ -113,15 +139,17 @@ func Upgreade(rw http.ResponseWriter, r *http.Request) {
 	//conn.WriteMessage(websocket.TextMessage)
 }
 
-func AddPeer(address, port string) {
+func AddPeer(address, port, openPort string) {
 	//go에서 connection 하기
 	//이 URL 을 call 하면 새로운 connection 을 만든다
 	//websocket 서버랑 연결하려고 할 때 upgrade 하기전 앞으로 도착할 request 를 체크할 수 있다
 	//만약 websocket 으로 인증하고 싶다면 requestHeader 에 token 을 보낸다
 
 	// 여기는 port:4000 이고 port:3000 으로 연결할길원함 (dial)
-	conn, _, err := websocket.DefaultDialer.Dial(fmt.Sprintf("ws://%s:%s/ws", address, port), nil)
-
+	//연결을 시도할 때 우리가 연결하려는 서버에게
+	//어떤 포트가 열려있는지도 알려주자
+	conn, _, err := websocket.DefaultDialer.Dial(fmt.Sprintf("ws://%s:%s/ws?openPort=%s", address, port, openPort), nil)
+	initPeer(conn, address, port)
 	utils.HandleErr(err)
 
 }
