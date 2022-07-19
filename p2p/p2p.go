@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/gwiyeomgo/nomadcoin/utils"
 	"net/http"
+	"time"
 )
 
 /*
@@ -57,6 +58,10 @@ func Upgreade(rw http.ResponseWriter, r *http.Request) {
 	//2. upgrader.Upgrade()
 	//http connection 을 WS connection 으로 upgreade 했음
 	conn, err := upgrader.Upgrade(rw, r, nil)
+
+	//peer 들에게 메세지를 보내는 방법?
+	// 읽는 방법 ? conn.ReadMessage()
+
 	// conn 은 port 3000  과 4000 을 이여준다
 	//adreess 와 port 정보 어떻게 알지?
 	//initPeer(conn,"xx","xx")
@@ -70,6 +75,8 @@ func Upgreade(rw http.ResponseWriter, r *http.Request) {
 	//3000 번 포트가 연결되어있는 모든 peers 를 보게 될거고
 	//3000번 포트가 4000번 포트에 업그레이드 요청을 보낼 수 있따
 	initPeer(conn, ip, openPort)
+	time.Sleep(20 * time.Second)
+	conn.WriteMessage(websocket.TextMessage, []byte("Hello form Port 3000!"))
 	utils.HandleErr(err)
 	/*	fmt.Println("Waiting 4 message...")
 		//3. coonn 으로 WriteMessage, WriteJSON  또는 ReadMessage
@@ -150,6 +157,8 @@ func AddPeer(address, port, openPort string) {
 	//어떤 포트가 열려있는지도 알려주자
 	conn, _, err := websocket.DefaultDialer.Dial(fmt.Sprintf("ws://%s:%s/ws?openPort=%s", address, port, openPort), nil)
 	initPeer(conn, address, port)
+	time.Sleep(10 * time.Second)
+	conn.WriteMessage(websocket.TextMessage, []byte("Hello form Port 4000!"))
 	utils.HandleErr(err)
 
 }
