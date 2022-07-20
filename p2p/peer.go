@@ -3,10 +3,20 @@ package p2p
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
+	"sync"
 )
 
 // 공유를 위해
-var Peers map[string]*peer = make(map[string]*peer)
+//var Peers map[string]*peer = make(map[string]*peer)
+
+type peers struct {
+	v map[string]*peer
+	m sync.Mutex
+}
+
+var Peers peers = peers{
+	v: make(map[string]*peer),
+}
 
 type peer struct {
 	conn    *websocket.Conn
@@ -14,6 +24,19 @@ type peer struct {
 	address string
 	key     string
 	port    string
+}
+
+//recevier 함수는 변형시킬 필요가 있을 때 사용한다
+
+func AllPeers(p *peers) []string {
+	p.m.Lock()
+	defer p.m.Unlock()
+	var keys []string
+
+	for key := range p.v {
+		keys = append(keys, key)
+	}
+	return keys
 }
 
 //메세지읽기 ?
@@ -32,8 +55,14 @@ func (p *peer) read() {
 
 //err 있거나 채널이 닫혔을 때
 func (p *peer) close() {
+	// peers struct(Peers) 변수는
+	//누구에게나 잠겨있는 상태가 된다
+	//만약 Peers 변수에 접근하려는 또 다른 go 루틴이 있어도
+	//우리가 잠금을 풀어 줄 때까지 기다려야 한다
+	Peers.m.Lock()
+	defer Peers.m.Unlock()
 	p.conn.Close()
-	delete(Peers, p.key)
+	delete(Peers.v, p.key)
 }
 
 func (p *peer) write() {
@@ -62,6 +91,6 @@ func initPeer(conn *websocket.Conn, address, port string) *peer {
 	go p.read()
 	go p.write()
 
-	Peers[key] = p
+	Peers.v[key] = p
 	return p
 }
