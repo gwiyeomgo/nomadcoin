@@ -2,8 +2,8 @@ package db
 
 import (
 	"fmt"
-	"github.com/boltdb/bolt"
 	"github.com/gwiyeomgo/nomadcoin/utils"
+	bolt "go.etcd.io/bbolt"
 )
 
 const (

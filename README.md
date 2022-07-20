@@ -746,3 +746,15 @@ AddPeer
 
 연결이 성공하면
 Peers 에다가 peer 를 저장한다
+
+
+#12.16 
+Data Race
+1. 무언가를 싱행하라고 하고
+2. 서버 하나를 죽이고
+3.그 다음에 peers 요청
+
+-race 를 붙여서 실행 시 발생
+
+bolt 내부 에러 존재함 race 사용 X
+최신버전의 bolt 로 이동 bblot 를 사용
