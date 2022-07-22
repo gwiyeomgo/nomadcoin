@@ -61,7 +61,7 @@ func Close() {
 	DB().Close()
 }
 func SaveBlock(hash string, data []byte) {
-	fmt.Printf("Saving Block %s\nData: %b\n", hash, data)
+	//fmt.Printf("Saving Block %s\nData: %b\n", hash, data)
 	// (2)blockchain DB를 설정,생성
 	err := DB().Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(blocksBucket))

@@ -44,10 +44,12 @@ func Upgreade(rw http.ResponseWriter, r *http.Request) {
 	//equest origin not allowed by Upgrader.CheckOrigin
 	//아무나 너의 서버에 접속할 수 있게 하면 안되기 때문에... 에러 발생
 	//CheckOrigin 은 유요한 webSocket 연결인지
-	// authenticate 인증할 때 사용
+	// authentuicate 인증할 때 사용
 	upgrader.CheckOrigin = func(r *http.Request) bool {
 		return openPort != "" && ip != ""
 	}
+
+	fmt.Printf("%s want an upgrade \n", openPort)
 
 	//websocket pacakge 가 있지만 일부기능 동작 X
 	//https://github.com/gorilla/websocket 사용
@@ -73,11 +75,10 @@ func Upgreade(rw http.ResponseWriter, r *http.Request) {
 	//ex 2000 포트가 들어오면 3000 에 연결하고
 	//3000 번 포트가 연결되어있는 모든 peers 를 보게 될거고
 	//3000번 포트가 4000번 포트에 업그레이드 요청을 보낼 수 있따
-	peer := initPeer(conn, ip, openPort)
+	initPeer(conn, ip, openPort)
 	//time.Sleep(20 * time.Second)
 	//	conn.WriteMessage(websocket.TextMessage, []byte("Hello form Port 3000!"))
 	//peer.inbox <- []byte("Hello form Port 3000!")
-	sendNewestBlock(peer)
 
 	/*	fmt.Println("Waiting 4 message...")
 		//3. coonn 으로 WriteMessage, WriteJSON  또는 ReadMessage
@@ -148,6 +149,7 @@ func Upgreade(rw http.ResponseWriter, r *http.Request) {
 }
 
 func AddPeer(address, port, openPort string) {
+	fmt.Printf("%s want to connect to port %s\n", openPort, port)
 	//go에서 connection 하기
 	//이 URL 을 call 하면 새로운 connection 을 만든다
 	//websocket 서버랑 연결하려고 할 때 upgrade 하기전 앞으로 도착할 request 를 체크할 수 있다
