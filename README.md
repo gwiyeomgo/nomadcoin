@@ -781,3 +781,23 @@ go 루틴들 중 하나는
 우리가 map 에서 읽어오는 동시에 map 을 수정했음 그래서 발생
 
 * 변수를 잠그거나 풀 수 있는 mutex 라고 함
+
+
+#12.23
+data race
+우리가 연결하면 이 코드가 두 곳에서 모두 실행됬기 때문에 발생
+두 개 이상의 go routine 이 같은 데이터에 접근하면
+그 데이터의 일부분이 수정 되거나 읽힘
+보호하기 위해서 lock ,unlock 해준다
+
+#12.24
+blockchain.db 라는 같은 database 를 공유하고 있기 때문에
+p2p 가 작동하기 위해서
+각 node 마다 다른 database 를 simulate 해줘야 한다 ****
+* database 들의 이름을 다른게 한다
+ex) port 4000 에게는 blockchain_4000.db , 3000 에게는 blockchain_3000.db
+어떻게 하면 다른 database 를 갖을까?
+dbName 을 다르게...
+port 를 알아야 하나까..
+
+*** 현재 동작하는 port 를 확인하는 function 만들자

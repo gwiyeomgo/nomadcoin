@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/gob"
+	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
@@ -50,4 +51,11 @@ func Splitter(s string, sep string, i int) string {
 		return ""
 	}
 	return r[i]
+}
+
+//json 으로 인코딩
+func ToJSON(i interface{}) []byte {
+	r, err := json.Marshal(i)
+	HandleErr(err)
+	return r
 }

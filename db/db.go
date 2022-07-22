@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"github.com/gwiyeomgo/nomadcoin/utils"
 	bolt "go.etcd.io/bbolt"
+	"os"
 )
 
 const (
-	dbName       = "blockchain.db"
+	dbName       = "blockchain"
 	dataBucket   = "data"
 	blocksBucket = "blocks"
 	checkPoint   = "checkpoint"
@@ -15,6 +16,19 @@ const (
 
 //(1)Singleton 패턴을 사용해서 export 되지 않는 벼누를 마들고
 var db *bolt.DB
+
+//현재 port 를 알 수 있는 함수
+func getPort() string {
+	/*	for i, a :=  range os.Args{
+		//0
+		//1 -mode=rest
+		//2 -port=4000
+		fmt.Println(i,a)
+	}*/
+	//fmt.Println(os.Args[2][6:])
+	port := os.Args[2][6:]
+	return fmt.Sprintf("%s_%s.db", dbName, port)
+}
 
 //(2) export 되는 DB 함수를 만들었다
 //db initialize function
@@ -26,7 +40,7 @@ func DB() *bolt.DB {
 
 		//DB로 연결 open, db와 상호작용 할 수 있도록
 		//1.make bucket = sql 에 table 과 같은 존재
-		dbPointer, err := bolt.Open(dbName, 0600, nil)
+		dbPointer, err := bolt.Open(getPort(), 0600, nil)
 		//path db name,mode 는 write/read 해야하는 permission
 		db = dbPointer
 		utils.HandleErr(err)

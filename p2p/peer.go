@@ -45,11 +45,14 @@ func (p *peer) read() {
 	//에러가 발생하면 peers 에서 peer 를 지운다
 	defer p.close()
 	for {
-		_, m, err := p.conn.ReadMessage()
+		m := Message{}
+		//websocket 에서 오는 메시지를 받아서 json 으로 변환 => joson 으로 부터 go f로 unmarshal 해준다
+		err := p.conn.ReadJSON(&m)
+		//_, m, err := p.conn.ReadMessage()
 		if err != nil {
 			break
 		}
-		fmt.Printf("%s", m)
+		handleMsg(&m, p)
 	}
 }
 
@@ -78,6 +81,8 @@ func (p *peer) write() {
 }
 
 func initPeer(conn *websocket.Conn, address, port string) *peer {
+	Peers.m.Lock()
+	defer Peers.m.Unlock()
 	key := fmt.Sprintf("%s:%s", address, port)
 	//& 로 pointer 만듬
 	p := &peer{
@@ -91,6 +96,9 @@ func initPeer(conn *websocket.Conn, address, port string) *peer {
 	go p.read()
 	go p.write()
 
+	//4000 시작 3000 시작 후 3000 종료후 재시작 후 연결시 data race 발생 여기
+	//재시작시 여기서 연결할 때 발생하는데
+	//3000 한번 끊고,다시 연결했는데 peer 4000 에서는 두번 동작했고 보호되지 않음
 	Peers.v[key] = p
 	return p
 }
