@@ -801,3 +801,6 @@ dbName 을 다르게...
 port 를 알아야 하나까..
 
 *** 현재 동작하는 port 를 확인하는 function 만들자
+
+#12.27 Broadcast Block
+메세지를 모두에게 전달하는 것

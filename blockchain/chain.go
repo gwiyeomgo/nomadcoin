@@ -1,8 +1,10 @@
 package blockchain
 
 import (
+	"encoding/json"
 	"github.com/gwiyeomgo/nomadcoin/db"
 	"github.com/gwiyeomgo/nomadcoin/utils"
+	"net/http"
 	"sync"
 )
 
@@ -17,6 +19,7 @@ type blockchain struct {
 	NewestHash        string `json:"newest_hash"`
 	Height            int    `json:"height"`
 	CurrentDifficulty int    `json:"currentDifficulty"`
+	m                 sync.Mutex
 }
 
 var b *blockchain
@@ -48,13 +51,13 @@ func (b *blockchain) AddBlock() {
 	//difficulty 지정
 	//block 추가할때마다 chain에 difficulty 변경됨
 	b.CurrentDifficulty = block.Difficulty
-	persist(b)
+	persistBlockChain(b)
 }
 
 //block에 checkoutpoint 를 지정
 //func (b *blockchain) persist() {
 //method 가 아닌 함수로
-func persist(b *blockchain) {
+func persistBlockChain(b *blockchain) {
 	db.SaveCheckpoint(utils.ToBytes(b))
 }
 
@@ -138,6 +141,8 @@ func Blockchain() *blockchain {
 //blockchain을 변화시키지 않고 그저 input 으로만 사용
 //메서드가 아닌 function 으로 변경
 func Blocks(b *blockchain) []*Block {
+	b.m.Lock()
+	defer b.m.Unlock()
 	//NewestHash 를 갖고 해당 블록을 찾는다.
 	//prevHash 가 없는 블록을 찾을 때 까지
 	//처음에는 블록체인의 NewestHash 찾음
@@ -288,4 +293,29 @@ func BalanceByAddress(b *blockchain, address string) int {
 		result += tx.Amount
 	}
 	return result
+}
+
+func Status(b *blockchain, w http.ResponseWriter) {
+	b.m.Lock()
+	defer b.m.Unlock()
+	utils.HandleErr(json.NewEncoder(w).Encode(b))
+}
+
+//mutate 할 꺼니까 blockahin 포인터 b
+func (b *blockchain) Replace(newBlocks []*Block) {
+	b.m.Lock()
+	defer b.m.Unlock()
+	//blockchain 의 NewestHash 와 Height CurrentDifficulty 업데이트
+	// 받아온 내용을 저장한다
+	b.Height = len(newBlocks)
+	b.NewestHash = newBlocks[0].Hash
+	b.CurrentDifficulty = newBlocks[0].Difficulty
+	persistBlockChain(b)
+	//원래 있던 블록은 삭제하고
+	db.EmptyBlocks()
+	//새 블록들을 저장한다
+	for _, block := range newBlocks {
+		persistBlock(block)
+	}
+
 }

@@ -33,7 +33,7 @@ type Block struct {
 	return blockBuffer.Bytes()
 }*/
 
-func (b *Block) persist() {
+func persistBlock(b *Block) {
 	db.SaveBlock(b.Hash, utils.ToBytes(b))
 }
 func (b *Block) restore(data []byte) {
@@ -97,6 +97,6 @@ func createBlock(preHash string, height int, diff int) Block {
 	// 채굴을 끝내고 해시를 찾고 전부 끝낸 다음
 	//transaction 블록에 넣어준다.
 	block.Transaction = Mempool.TxToConfirm()
-	block.persist()
+	persistBlock(&block)
 	return block
 }
