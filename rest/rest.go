@@ -17,9 +17,9 @@ type url string
 //const port string = ":4000"
 var port string
 
-func (u url) MarshalText() (text []byte, err error) {
-	url := fmt.Sprintf("http://localhost%s", port, u)
-	return []byte(url), err
+func (u url) MarshalText() ([]byte, error) {
+	url := fmt.Sprintf("http://localhost%s%s", port, u)
+	return []byte(url), nil
 }
 
 type urlDescription struct {
@@ -88,7 +88,9 @@ func blocks(rw http.ResponseWriter, r *http.Request) {
 		//utils.HandleErr(json.NewDecoder(r.Body).Decode(&addBlockBody))
 		//request body 의 message로 새 블록 추가한다
 		//blockchain.Blockchain().AddBlock(addBlockBody.Message)
-		blockchain.Blockchain().AddBlock()
+		newBlock := blockchain.Blockchain().AddBlock()
+		//모든 네트워크에 p2p.BroadcastNewBlock() 전달
+		p2p.BroadcastNewBlock(newBlock)
 		rw.WriteHeader(http.StatusCreated) //201
 
 	}
@@ -99,7 +101,7 @@ func status(rw http.ResponseWriter, r *http.Request) {
 }
 
 func mempool(rw http.ResponseWriter, r *http.Request) {
-	utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Mempool.Txs))
+	utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Mempool().Txs))
 }
 func myWallet(rw http.ResponseWriter, r *http.Request) {
 	address := wallet.Wallet().Address
@@ -112,12 +114,15 @@ func transaction(rw http.ResponseWriter, r *http.Request) {
 	var payload addTxPayload
 	//reqeust body 값을 받고
 	json.NewDecoder(r.Body).Decode(&payload)
-	err := blockchain.Mempool.AddTx(payload.To, payload.Amount)
+	tx, err := blockchain.Mempool().AddTx(payload.To, payload.Amount)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(errorResponse{err.Error()})
 		return
 	}
+	// go 루틴을 사용해서
+	// Header 가 broadcast 를 기다리지 않도록 할 수 있다
+	go p2p.BroadcastNewTx(tx)
 	rw.WriteHeader(http.StatusCreated)
 }
 
@@ -127,7 +132,7 @@ func peers(rw http.ResponseWriter, r *http.Request) {
 		//API 에서 온 json 을 go 언어로 variable 바꿀 준비
 		var payload addPeerPayload
 		json.NewDecoder(r.Body).Decode(&payload)
-		p2p.AddPeer(payload.Address, payload.Port, port)
+		p2p.AddPeer(payload.Address, payload.Port, port[1:], true)
 		rw.WriteHeader(http.StatusOK)
 	case "GET":
 		json.NewEncoder(rw).Encode(p2p.AllPeers(&p2p.Peers))

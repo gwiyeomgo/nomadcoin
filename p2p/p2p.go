@@ -3,6 +3,7 @@ package p2p
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/gwiyeomgo/nomadcoin/blockchain"
 	"github.com/gwiyeomgo/nomadcoin/utils"
 	"net/http"
 )
@@ -76,6 +77,7 @@ func Upgreade(rw http.ResponseWriter, r *http.Request) {
 	//3000 번 포트가 연결되어있는 모든 peers 를 보게 될거고
 	//3000번 포트가 4000번 포트에 업그레이드 요청을 보낼 수 있따
 	initPeer(conn, ip, openPort)
+
 	//time.Sleep(20 * time.Second)
 	//	conn.WriteMessage(websocket.TextMessage, []byte("Hello form Port 3000!"))
 	//peer.inbox <- []byte("Hello form Port 3000!")
@@ -148,7 +150,10 @@ func Upgreade(rw http.ResponseWriter, r *http.Request) {
 	//conn.WriteMessage(websocket.TextMessage)
 }
 
-func AddPeer(address, port, openPort string) {
+func AddPeer(address, port, openPort string, broadcast bool) {
+	//bool 추가해
+	//이게 첫 연결인지 아니면,broadcast 를 통한 연결인지 확인
+
 	fmt.Printf("%s want to connect to port %s\n", openPort, port)
 	//go에서 connection 하기
 	//이 URL 을 call 하면 새로운 connection 을 만든다
@@ -159,10 +164,56 @@ func AddPeer(address, port, openPort string) {
 	//연결을 시도할 때 우리가 연결하려는 서버에게
 	//어떤 포트가 열려있는지도 알려주자
 	conn, _, err := websocket.DefaultDialer.Dial(fmt.Sprintf("ws://%s:%s/ws?openPort=%s", address, port, openPort), nil)
+	utils.HandleErr(err)
 	peer := initPeer(conn, address, port)
 	//time.Sleep(10 * time.Second)
 	//conn.WriteMessage(websocket.TextMessage, []byte("Hello form Port 4000!"))
 	//peer.inbox <- []byte("Hello form Port 4000!")
-	utils.HandleErr(err)
+	if broadcast {
+		//broadcast 는 새로운 peer 가 rest api 를 통해서 올 때만 true 가 된다
+		broadcastNewPeer(peer)
+		return
+	}
+
 	sendNewestBlock(peer)
+
+}
+
+func notifyNewestBlock(b *blockchain.Block, p *peer) {
+	m := makeMessage(MessageNewBlockNotify, b)
+	p.inbox <- m
+
+}
+
+func BroadcastNewBlock(b *blockchain.Block) {
+	for _, p := range Peers.v {
+		notifyNewestBlock(b, p)
+	}
+}
+
+func notifyNewTx(tx *blockchain.Tx, p *peer) {
+	//makeMessage 는 메세지를 만든 다음 payload 와 메세지 자체를 json 으로 변환
+	m := makeMessage(MessageNewTxNotify, tx)
+	p.inbox <- m
+
+}
+func BroadcastNewTx(tx *blockchain.Tx) {
+	for _, p := range Peers.v {
+		notifyNewTx(tx, p)
+	}
+}
+func notifyNewPeer(payload string, p *peer) {
+	m := makeMessage(MessageNewPeerNotify, payload)
+	p.inbox <- m
+}
+func broadcastNewPeer(newPeer *peer) {
+	//업그레이드 받고 해당 함수를 실행
+	// 새로 들어온 peer 에게는 메시지를 보내지 않고 나머지 peer 에 보냄
+	for key, p := range Peers.v {
+		if newPeer.key != key {
+			//보낸사람이 누구인지 알고 싶음
+			payload := fmt.Sprintf("%s:%s", newPeer.key, p.port)
+			notifyNewPeer(payload, p)
+		}
+	}
 }

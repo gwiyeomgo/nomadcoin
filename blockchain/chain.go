@@ -42,7 +42,7 @@ func (b *blockchain) restore(data []byte) {
 //db에 block 을 저장하는 코드
 //블록체인을 처음 실행시키는 사람의 관점
 //func (b *blockchain) AddBlock(data string) {
-func (b *blockchain) AddBlock() {
+func (b *blockchain) AddBlock() *Block {
 	//block := createBlock(data, b.NewestHash, b.Height+1)
 	//아래 코드처럼 수정하면 deadlock 발생 X
 	block := createBlock(b.NewestHash, b.Height+1, getDifficulty(b))
@@ -52,6 +52,7 @@ func (b *blockchain) AddBlock() {
 	//block 추가할때마다 chain에 difficulty 변경됨
 	b.CurrentDifficulty = block.Difficulty
 	persistBlockChain(b)
+	return block
 }
 
 //block에 checkoutpoint 를 지정
@@ -318,4 +319,36 @@ func (b *blockchain) Replace(newBlocks []*Block) {
 		persistBlock(block)
 	}
 
+}
+
+//AddPeerBlock 는 우리의 peer 친구가 블록을 confirm 할 때 호출한다
+func (b *blockchain) AddPeerBlock(newBlock *Block) {
+	b.m.Lock()
+	defer b.m.Unlock()
+	//mempool 을 수정할꺼니 mempool 을 가져와서 수정하지 못하게 Lock 함
+	m.m.Lock()
+	defer m.m.Unlock()
+
+	b.Height += 1
+	b.CurrentDifficulty = newBlock.Difficulty
+	b.NewestHash = newBlock.Hash
+
+	persistBlockChain(b)
+	persistBlock(newBlock)
+	//TODO node 에서 새블록이 도착하면 trasction 확인하고 mempool 에서 삭제
+	//새로운 블록에 있는 각각의 transction 을 찾아서 mempool 에서 지운다
+	//Mempool().Txs 과 block.Transaction 비교
+	//왜 지워?
+	//이미 confirm 된 거니까 누가 또 confirm 못하게 하기 위해서
+	//이렇게 배열을 다 확인해서 삭제하면,,, 느릴거다 mempool 을 배열이아닌 형태 변화시킴
+	for _, tx := range newBlock.Transaction {
+
+		// mempool 에서 tx.ID 를 찾아서
+		// transaction 이 제건된 slicde 를 map 으로 변경 만든다
+		//그리고 map 에서 찾음
+		_, ok := m.Txs[tx.ID]
+		if ok {
+			delete(m.Txs, tx.ID)
+		}
+	}
 }

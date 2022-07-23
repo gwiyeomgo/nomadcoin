@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gwiyeomgo/nomadcoin/blockchain"
 	"github.com/gwiyeomgo/nomadcoin/utils"
+	"strings"
 )
 
 type MessageKind int
@@ -22,6 +23,9 @@ const (
 	MessageNewestBlock MessageKind = iota
 	MessageAllBlocksRequest
 	MessageAllBlocksResponse
+	MessageNewBlockNotify
+	MessageNewTxNotify
+	MessageNewPeerNotify
 )
 
 //Payload
@@ -110,5 +114,29 @@ func handleMsg(m *Message, p *peer) {
 		var payload []*blockchain.Block
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
 		blockchain.Blockchain().Replace(payload)
+	case MessageNewBlockNotify:
+		var payload *blockchain.Block
+		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
+		//받아온 새 block 를 저장
+		blockchain.Blockchain().AddPeerBlock(payload)
+	case MessageNewTxNotify:
+		var payload *blockchain.Tx
+		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
+		//받아온 transaction 를 포함하도로
+		// Mempool 수정
+		blockchain.Mempool().AddPeerTx(payload)
+	case MessageNewPeerNotify:
+		//새 peer 가 연결된걸 알고
+		//내가 연결된건지 알아야하지 않을까?
+		//우선 address 받음
+		var payload string
+		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
+		fmt.Printf("I will now /ws upgarde %s", payload)
+		//연결되지 않았던 4000 이 네트워크게 새로운 node 가 있다는 알림을 받았고
+		//openPort 는 모르겠어어 => 메세지 보낼때 추가해서 인제는 알수있다
+		//string  slicd
+		parts := strings.Split(payload, ":")
+
+		AddPeer(parts[0], parts[1], parts[2], false)
 	}
 }

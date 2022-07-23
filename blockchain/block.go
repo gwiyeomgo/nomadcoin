@@ -76,7 +76,7 @@ func FindBlock(hash string) (*Block, error) {
 
 //func createBlock(data string, preHash string, height int) Block {
 //func createBlock(preHash string, height int) Block {
-func createBlock(preHash string, height int, diff int) Block {
+func createBlock(preHash string, height int, diff int) *Block {
 	block := Block{
 		//		Data:       data,
 		Hash:    "",
@@ -96,7 +96,7 @@ func createBlock(preHash string, height int, diff int) Block {
 	//(1) persist 는 SaveBlock 을 호출
 	// 채굴을 끝내고 해시를 찾고 전부 끝낸 다음
 	//transaction 블록에 넣어준다.
-	block.Transaction = Mempool.TxToConfirm()
+	block.Transaction = Mempool().TxToConfirm()
 	persistBlock(&block)
-	return block
+	return &block
 }

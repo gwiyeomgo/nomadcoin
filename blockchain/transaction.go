@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/gwiyeomgo/nomadcoin/utils"
 	"github.com/gwiyeomgo/nomadcoin/wallet"
+	"sync"
 	"time"
 )
 
@@ -21,12 +22,28 @@ type Tx struct {
 
 //mempool
 type mempool struct {
-	Txs []*Tx
+	//Txs []*Tx
+	Txs map[string]*Tx
+	m   sync.Mutex
 }
 
 //mempool 곧바로 초기화 해줌 =>  비어있는 mempool
 //mempool 은 memory에만 존재한다 (blockchain의 경우는 db에 저장)
-var Mempool *mempool = &mempool{}
+//var Mempool *mempool = &mempool{}
+//Memppol 이 단순 변수면 data race 에 안정성이 없다
+//mutex 를 포함시키자
+var m *mempool = &mempool{}
+var memOnce sync.Once
+
+func Mempool() *mempool {
+	//초기화 해준다
+	memOnce.Do(func() {
+		m = &mempool{
+			Txs: make(map[string]*Tx),
+		}
+	})
+	return m
+}
 
 func validate(tx *Tx) bool {
 	//transaction input 에 참조된
@@ -63,7 +80,7 @@ func isOnMempool(uTxOut *UTxOut) bool {
 	//여러 개의 for loop 이 중첩됐을 경우
 	//바깥쪽 for loop을 종료시킬 방법 label
 Outer:
-	for _, tx := range Mempool.Txs {
+	for _, tx := range Mempool().Txs {
 		for _, input := range tx.TxIns {
 			//아래 코드는 멈추지 않음
 			//uOut 과 같은 트랜잭션 ID와 index 를 가지고 이는 항목이 있는지 확인
@@ -200,22 +217,38 @@ func makeTx(from, to string, amount int) (*Tx, error) {
 	}
 	return tx, nil
 }
-func (m *mempool) AddTx(to string, amount int) error {
+
+// transaction 이 생겼을 때 message 를 다른 peer 에 보내기 위해서 tx 를 반환하도록 수정
+func (m *mempool) AddTx(to string, amount int) (*Tx, error) {
 	tx, err := makeTx(wallet.Wallet().Address, to, amount)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	//mempool에 tx저장
-	m.Txs = append(m.Txs, tx)
-	return nil
+	//m.Txs = append(m.Txs, tx)
+	m.Txs[tx.ID] = tx
+	return tx, nil
 }
 
 //승인할 트랜잭션들을 가져오기
 func (m *mempool) TxToConfirm() []*Tx {
 	coinbase := makeCoinbaseTx(wallet.Wallet().Address)
-	txs := m.Txs
+	//txs := m.Txs
+	//txs = append(txs, coinbase)
+	var txs []*Tx
+	for _, tx := range m.Txs {
+		txs = append(txs, tx)
+	}
 	txs = append(txs, coinbase)
+	m.Txs = make(map[string]*Tx)
 	// mempool 에서 transaction 비워주기
-	m.Txs = nil
+	//m.Txs = nil
 	return txs
+}
+
+func (m *mempool) AddPeerTx(tx *Tx) {
+	m.m.Lock()
+	defer m.m.Unlock()
+	//m.Txs = append(m.Txs, tx)
+	m.Txs[tx.ID] = tx
 }
