@@ -823,3 +823,10 @@ mempool 을 비워 버린다
 업그레이드 받으면
 네트워크에 새로운 peer 를 broadcast 해줘야 한다
 
+# goDoc
+go 프로그앰의 문서를 생성해 준다
+go get golang.org/x/tools/cmd/godoc
+https://pkg.go.dev/golang.org/x/tools/cmd/godoc
+
+godoc -http=:6060 
+6060 은 우리가 문서를 볼 수 있는 로컬 서버
