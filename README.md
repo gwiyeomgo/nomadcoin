@@ -830,3 +830,14 @@ https://pkg.go.dev/golang.org/x/tools/cmd/godoc
 
 godoc -http=:6060 
 6060 은 우리가 문서를 볼 수 있는 로컬 서버
+
+
+#13.6
+unit test 란 코드를 같은 파일에 있는 다른 코드들과 독립적으로 테스트 하는 것
+모든게 다른 것들로부터 독립적이다
+
+
+# 13.8 interfaces 를 사용한 testcase
+
+테스트하기 쉽고,훨씬 깔끔하고, 모든 것에 덜 의존적인 코드를 만든다
+interfaces 가 좋은 이유는 interfaces 는 함수를 구현하지 않고 함수의 모양을 설명 할 수 있게 해주기 때문

@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/gwiyeomgo/nomadcoin/utils"
+	"io/fs"
 	"math/big"
 	"os"
 )
@@ -21,6 +22,28 @@ import (
 const (
 	fileName string = "gwiyeom.wallet"
 )
+
+//test 할 때는 interface 를 내가 원하는 대로 구현
+type fileLayer interface {
+	hasWalletFile() bool
+	writeFile(name string, data []byte, perm fs.FileMode) error
+	readFile(name string) ([]byte, error)
+}
+type layer struct{}
+
+func (layer) hasWalletFile() bool {
+	_, err := os.Stat(fileName)
+	return !os.IsNotExist(err)
+}
+func (layer) writeFile(name string, data []byte, perm fs.FileMode) error {
+	return os.WriteFile(name, data, perm)
+}
+
+func (l layer) readFile(name string) ([]byte, error) {
+	return os.ReadFile(name)
+}
+
+var files fileLayer = layer{}
 
 //지갑 유지 persist
 //Singleton을 사용한다면 우리가 특정 변수를 어떻게 초기화할 지 우리가 정할 수 있다
@@ -45,18 +68,19 @@ func persistKey(key *ecdsa.PrivateKey) {
 	//*하지만 val,err := fun() val2,err := fun() 이렇게 는 가능
 	// val,err := fun() _,err = fun() 불가능
 	// go 규칙때문 => 만약 val2가 있다면 err는 업데이트 된다는 의미
-
-	err = os.WriteFile(fileName, bytes, 0644)
+	err = files.writeFile(fileName, bytes, 0644)
 	utils.HandleErr(err)
+	/*	err = os.WriteFile(fileName, bytes, 0644)*/
 }
-func hasWalletFile() bool {
+
+/*func hasWalletFile() bool {
 	//os package ,파일 존재하지 않을 때 err 반환 or 파일정보 반환
 	_, err := os.Stat(fileName)
 	//이때 err 는 기존 err 와 다름 os 에서 IsExist 사용
 	//파일이 존재하지않거나 에러가 있을때 boolean 으로 에러 알려줌
 	// err 있다면(!true) =>  false 반환시킴
 	return !os.IsNotExist(err)
-}
+}*/
 
 // 파일-> key 복구
 //named return
@@ -64,7 +88,7 @@ func hasWalletFile() bool {
 //func restoreKey() *ecdsa.PrivateKey {
 func restoreKey() (key *ecdsa.PrivateKey) {
 	//byte 조각들과 error 반환
-	keyAsBytes, err := os.ReadFile(fileName)
+	keyAsBytes, err := files.readFile(fileName)
 	utils.HandleErr(err)
 	key, err = x509.ParseECPrivateKey(keyAsBytes)
 	utils.HandleErr(err)
@@ -166,7 +190,7 @@ func Wallet() *wallet {
 		//선언만 했던 w를 초기화한다
 		w = &wallet{}
 		// has a wallet already?
-		if hasWalletFile() == true {
+		if files.hasWalletFile() == true {
 			//yes : restore form file
 			w.privateKey = restoreKey()
 		} else {

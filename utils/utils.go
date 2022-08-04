@@ -11,9 +11,11 @@ import (
 	"strings"
 )
 
+var logFn = log.Panic
+
 func HandleErr(err error) {
 	if err != nil {
-		log.Panic(err)
+		logFn(err)
 	}
 }
 
@@ -54,8 +56,9 @@ func Splitter(s string, sep string, i int) string {
 	return r[i]
 }
 
-//json 으로 인코딩
+//json 이 byte 로 인코딩
 func ToJSON(i interface{}) []byte {
+	//json 이 byte 로 인코딩
 	r, err := json.Marshal(i)
 	HandleErr(err)
 	return r
