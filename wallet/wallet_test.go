@@ -4,6 +4,7 @@ import (
 	"crypto/x509"
 	"encoding/hex"
 	"io/fs"
+	"reflect"
 	"testing"
 )
 
@@ -70,14 +71,15 @@ type fakeLayer struct {
 	fakeHashWalletFile func() bool
 }
 
-func (fakeLayer) hasWalletFile() bool {
-	return false
+func (f fakeLayer) hasWalletFile() bool {
+	return f.fakeHashWalletFile()
 }
-func (fakeLayer) writeFile(name string, data []byte, perm fs.FileMode) error {
+func (f fakeLayer) writeFile(name string, data []byte, perm fs.FileMode) error {
 	return nil
 }
 
-func (fakeLayer) readFile(name string) ([]byte, error) {
+//wqllet 의 bytes 를 return 해준다
+func (f fakeLayer) readFile(name string) ([]byte, error) {
 	return x509.MarshalECPrivateKey(makeTestWallet().privateKey)
 }
 
@@ -85,9 +87,29 @@ func TestWallet(t *testing.T) {
 	//wallet 을 테스트함
 	//그런데 files 의 의미를 변경해준다
 	//Layer 를 가짜 Layer로 변경
-	files = fakeLayer{}
 
 	//1. wallet 파일이 있는지 확인,있을 때는 이것들이 작동하는지, wallet 을 return 하는지 확인
 	//2. wallet 파일이 없다면, privateKey 생성해 wallet 을 생성하는지 확인
+	t.Run("New Wallet is createde", func(t *testing.T) {
+		files = fakeLayer{
+			fakeHashWalletFile: func() bool { return false },
+		}
+		//wallet 이 만들어졌을 때
+		tw := Wallet()
+		if reflect.TypeOf(tw) != reflect.TypeOf(&wallet{}) {
+			t.Error("New Wallet should return  a new wallet instance")
+		}
+	})
+	t.Run(" Wallet is restored", func(t *testing.T) {
+		files = fakeLayer{
+			fakeHashWalletFile: func() bool { return true },
+		}
+		//wallet 이 만들어졌을 때
+		w = nil
+		tw := Wallet()
+		if reflect.TypeOf(tw) != reflect.TypeOf(&wallet{}) {
+			t.Error("New Wallet should return  a new wallet instance")
+		}
 
+	})
 }

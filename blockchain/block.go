@@ -2,7 +2,6 @@ package blockchain
 
 import (
 	"errors"
-	"github.com/gwiyeomgo/nomadcoin/db"
 	"github.com/gwiyeomgo/nomadcoin/utils"
 	"strings"
 	"time"
@@ -34,7 +33,8 @@ type Block struct {
 }*/
 
 func persistBlock(b *Block) {
-	db.SaveBlock(b.Hash, utils.ToBytes(b))
+	//db.SaveBlock(b.Hash, utils.ToBytes(b))
+	dbStorage.SaveBlock(b.Hash, utils.ToBytes(b))
 }
 func (b *Block) restore(data []byte) {
 	utils.FromBytes(b, data)
@@ -65,7 +65,8 @@ func (b *Block) mine() {
 var ErrNotFound = errors.New("Block not found")
 
 func FindBlock(hash string) (*Block, error) {
-	blockBytes := db.Block(hash)
+	//blockBytes := db.Block(hash)
+	blockBytes := dbStorage.FindBlock(hash)
 	if blockBytes == nil {
 		return nil, ErrNotFound
 	}

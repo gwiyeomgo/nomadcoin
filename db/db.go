@@ -15,7 +15,27 @@ const (
 )
 
 //(1)Singleton 패턴을 사용해서 export 되지 않는 벼누를 마들고
+
 var db *bolt.DB
+
+//interface 를 위한 struct
+type DB struct{}
+
+func (d DB) FindBlock(hash string) []byte {
+	return findBlock(hash)
+}
+func (d DB) SaveBlock(hash string, data []byte) {
+	saveBlock(hash, data)
+}
+func (d DB) SaveChain(data []byte) {
+	saveChain(data)
+}
+func (d DB) LoadChain() []byte {
+	return loadChain()
+}
+func (d DB) DeleteAllBlocks() {
+	deleteAllBlocks()
+}
 
 //현재 port 를 알 수 있는 함수
 func getPort() string {
@@ -32,7 +52,8 @@ func getPort() string {
 
 //(2) export 되는 DB 함수를 만들었다
 //db initialize function
-func DB() *bolt.DB {
+func InitDB() {
+	//func InitDB() *bolt.DB {
 	if db == nil {
 
 		//* open 이후에는 자료를 해방해 주고,
@@ -54,16 +75,16 @@ func DB() *bolt.DB {
 		})
 		utils.HandleErr(err)
 	}
-	return db
+	//	return db
 }
 
 func Close() {
-	DB().Close()
+	db.Close()
 }
-func SaveBlock(hash string, data []byte) {
+func saveBlock(hash string, data []byte) {
 	//fmt.Printf("Saving Block %s\nData: %b\n", hash, data)
 	// (2)blockchain DB를 설정,생성
-	err := DB().Update(func(tx *bolt.Tx) error {
+	err := db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(blocksBucket))
 		err := bucket.Put([]byte(hash), data)
 		return err
@@ -71,8 +92,8 @@ func SaveBlock(hash string, data []byte) {
 	utils.HandleErr(err)
 }
 
-func SaveCheckpoint(data []byte) {
-	err := DB().Update(func(tx *bolt.Tx) error {
+func saveChain(data []byte) {
+	err := db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(dataBucket))
 		//key/value 추가
 		err := bucket.Put([]byte(checkPoint), data)
@@ -81,9 +102,9 @@ func SaveCheckpoint(data []byte) {
 	utils.HandleErr(err)
 }
 
-func Checkpoint() []byte {
+func loadChain() []byte {
 	var data []byte
-	DB().View(func(tx *bolt.Tx) error {
+	db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(dataBucket))
 		data = bucket.Get([]byte(checkPoint))
 		//bucket 은 err 반환 X
@@ -92,10 +113,10 @@ func Checkpoint() []byte {
 	return data
 }
 
-func Block(hash string) []byte {
+func findBlock(hash string) []byte {
 	var data []byte
 	//DB에 blocksBucket 에서 특정 블록을 찾는다
-	DB().View(func(tx *bolt.Tx) error {
+	db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(blocksBucket))
 		data = bucket.Get([]byte(hash))
 		return nil
@@ -103,8 +124,8 @@ func Block(hash string) []byte {
 	return data
 }
 
-func EmptyBlocks() {
-	DB().Update(func(t *bolt.Tx) error {
+func deleteAllBlocks() {
+	db.Update(func(t *bolt.Tx) error {
 		//Bucket 이 통째로 삭제
 		utils.HandleErr(t.DeleteBucket([]byte(blocksBucket)))
 		_, err := t.CreateBucket([]byte(blocksBucket))

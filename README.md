@@ -841,3 +841,19 @@ unit test 란 코드를 같은 파일에 있는 다른 코드들과 독립적으
 
 테스트하기 쉽고,훨씬 깔끔하고, 모든 것에 덜 의존적인 코드를 만든다
 interfaces 가 좋은 이유는 interfaces 는 함수를 구현하지 않고 함수의 모양을 설명 할 수 있게 해주기 때문
+
+interfae 를 구현하는지 신경 쓰지 않음
+`var files fileLayer = layer{}`
+variable을 만듦으로 생기는 힘 = 이것을 교체해 줄 수 있다
+덮어쓰고(overwirte)
+
+#13.10
+database 같은 경우 충분히 격리 되어 있지 않기 때문에 테스트 하고 싶지 않다
+Fake database 를 구벼현
+
+*adapter
+아무것도 구현하지 않음
+함수를 구현하지 않아서 실행하면 error 남
+이제는 interface type 의 variable 을 대신 사용
+해당하는 method 를 구현
+function 을 보내지 않고 struct 를 내보내고 있음

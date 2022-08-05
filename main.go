@@ -15,6 +15,7 @@ func main() {
 	defer db.Close()
 	//CLI 는 유저에게 flag 를 입력하도록 요청
 	//blockchain.Blockchain()
+	db.InitDB()
 	cli.Start()
 	//		blockchain.Blockchain().AddBlock("First")
 	//		blockchain.Blockchain().AddBlock("Second")

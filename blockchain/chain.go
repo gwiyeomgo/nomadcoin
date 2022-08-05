@@ -22,6 +22,19 @@ type blockchain struct {
 	m                 sync.Mutex
 }
 
+//database를 사용하는 때를 모두 확인하고 storage 를 위한 interface 를 만들자
+//public 으로 만들어줘야함
+type storage interface {
+	FindBlock(hash string) []byte
+	SaveBlock(hash string, data []byte)
+	SaveChain(data []byte)
+	LoadChain() []byte
+	DeleteAllBlocks()
+}
+
+//데이터베이스를 위한 adapter 생김, struct 를 씀
+var dbStorage storage = db.DB{}
+
 var b *blockchain
 var once sync.Once
 
@@ -59,7 +72,8 @@ func (b *blockchain) AddBlock() *Block {
 //func (b *blockchain) persist() {
 //method 가 아닌 함수로
 func persistBlockChain(b *blockchain) {
-	db.SaveCheckpoint(utils.ToBytes(b))
+	//db.SaveCheckpoint(utils.ToBytes(b))
+	dbStorage.SaveChain(utils.ToBytes(b))
 }
 
 //예상 시간은 5개의 블록이 2분마다 생성되는 시간 => 10분
@@ -119,7 +133,8 @@ func Blockchain() *blockchain {
 			Height: 0,
 		}
 		// search for checkpoint on the db (db에서 블록체인을 가져오는 함수)
-		checkpoint := db.Checkpoint()
+		//checkpoint := db.Checkpoint()
+		checkpoint := dbStorage.LoadChain()
 		if checkpoint == nil {
 			//b.AddBlock("Genesis")
 			b.AddBlock()
@@ -313,7 +328,8 @@ func (b *blockchain) Replace(newBlocks []*Block) {
 	b.CurrentDifficulty = newBlocks[0].Difficulty
 	persistBlockChain(b)
 	//원래 있던 블록은 삭제하고
-	db.EmptyBlocks()
+	//db.EmptyBlocks()
+	dbStorage.DeleteAllBlocks()
 	//새 블록들을 저장한다
 	for _, block := range newBlocks {
 		persistBlock(block)
