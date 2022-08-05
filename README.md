@@ -857,3 +857,6 @@ Fake database 를 구벼현
 이제는 interface type 의 variable 을 대신 사용
 해당하는 method 를 구현
 function 을 보내지 않고 struct 를 내보내고 있음
+이렇게 사용하면 모듈식(독립적이다)
+중요
+***다른패키지에 의존하지 않는 코드***
