@@ -38,8 +38,8 @@ func TestFindBlock(t *testing.T) {
 				return utils.ToBytes(b)
 			},
 		}
-		b, _ := FindBlock("xx")
-		if b.Height != 1 {
+		block, _ := FindBlock("xx")
+		if block.Height != 1 {
 			t.Error("Block should be found")
 		}
 	})
